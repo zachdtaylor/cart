@@ -1,26 +1,12 @@
 import db from "~/db.server";
 import { handleDelete } from "./utils";
+import { graphql } from "~/graphql";
 
-export function getAllShelves(userId: string, query: string | null) {
-  return db.pantryShelf.findMany({
-    where: {
-      userId,
-      name: {
-        contains: query ?? "",
-        mode: "insensitive",
-      },
-    },
-    include: {
-      items: {
-        orderBy: {
-          name: "asc",
-        },
-      },
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+export async function getAllShelves(token: string) {
+  const { currentUser } = await client.request(getAllShelvesQuery);
+  console.log("currentUser", currentUser);
+
+  return currentUser?.pantryShelves;
 }
 
 export function createShelf(userId: string) {

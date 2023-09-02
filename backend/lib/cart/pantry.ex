@@ -24,11 +24,19 @@ defmodule Cart.Pantry do
   def list_shelves(%User{} = user, %{} = args \\ %{}) do
     PantryShelf
     |> where([s], s.user_id == ^user.id)
+    |> search_by_name(args)
     |> order_by([s], desc: s.inserted_at)
     |> Pagination.paginate(args)
     |> preload(items: ^from(i in PantryItem, order_by: [desc: i.inserted_at]))
     |> Repo.all()
   end
+
+  defp search_by_name(queryable, %{query: query}) do
+    queryable
+    |> where([s], ilike(s.name, ^"%#{query}%"))
+  end
+
+  defp search_by_name(queryable, _), do: queryable
 
   @doc """
   Retrieves a pantry shelf by its id.

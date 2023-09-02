@@ -16,6 +16,8 @@ defmodule CartWeb.Schema.AccountsSchema do
     field :last_name, non_null(:string)
 
     field :pantry_shelves, non_null(list_of(non_null(:pantry_shelf))) do
+      arg(:query, :string)
+
       resolve(&PantryResolver.list_pantry_shelves/3)
     end
   end

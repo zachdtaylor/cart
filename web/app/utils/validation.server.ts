@@ -1,6 +1,6 @@
 import { type z } from "zod";
 import { type MutationError } from "~/graphql/graphql";
-import { badRequest } from "./http";
+import { badRequest } from "./http.server";
 
 type FieldErrors = { [key: string]: string };
 

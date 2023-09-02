@@ -4,11 +4,15 @@ defmodule CartWeb.Resolvers.AccountsResolver do
   """
   import CartWeb.Helpers.Mutations, only: [mutation_response: 1]
 
+  alias CartWeb.Helpers.Errors
   alias Cart.Accounts
   alias Cart.Accounts.User
 
   def current_user(_parent, _args, %{context: context}) do
-    {:ok, Map.get(context, :current_user, nil)}
+    case Map.get(context, :current_user, nil) do
+      :unauthorized -> Errors.unauthorized()
+      user -> {:ok, user}
+    end
   end
 
   def register_user(_parent, %{input: input}, _resolution) do

@@ -5,9 +5,10 @@ import { ErrorMessage, PrimaryButton, PrimaryInput } from "~/components/forms";
 import { commitSession, getSession } from "~/sessions";
 import { formatMutationErrors, validateForm } from "~/utils/validation.server";
 import { requireLoggedOutUser } from "~/utils/auth.server";
-import { graphql } from "~/graphql";
-import { client } from "~/utils/api-client.server";
-import { badRequest } from "~/utils/http";
+import { graphql } from "~/graphql-codegen";
+import { getClient } from "~/api-client/client.server";
+import { badRequest } from "~/utils/http.server";
+import invariant from "tiny-invariant";
 
 const logInQuery = graphql(`
   mutation LogIn($input: LogInUserInput!) {
@@ -43,14 +44,16 @@ export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
 
   return validateForm(formData, loginSchema, async ({ email, password }) => {
+    const client = await getClient(request);
     const { logInUser } = await client.request({
       document: logInQuery,
       variables: { input: { email, password } },
     });
 
     if (logInUser?.success) {
-      session.set("userId", logInUser?.data?.userId);
-      session.set("token", logInUser?.data?.token);
+      invariant(logInUser?.data?.token);
+      session.set("token", logInUser.data.token);
+
       return redirect("/", {
         headers: {
           "Set-Cookie": await commitSession(session),

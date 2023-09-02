@@ -7,6 +7,7 @@ import {
 } from "@remix-run/react";
 import React from "react";
 import { z } from "zod";
+import { backendRequest } from "~/api-client/client.server";
 import {
   DeleteButton,
   ErrorMessage,
@@ -16,29 +17,35 @@ import {
 } from "~/components/forms";
 import { PlusIcon, SaveIcon, TrashIcon } from "~/components/icons";
 import {
-  createShelfItem,
-  deleteShelfItem,
-  getShelfItem,
-} from "~/models/pantry-item.server";
-import {
-  createShelf,
-  deleteShelf,
-  getAllShelves,
-  getShelf,
-  saveShelfName,
-} from "~/models/pantry-shelf.server";
-import { requireLoggedInUser } from "~/utils/auth.server";
+  createPantryItemQuery,
+  createShelfQuery,
+  deletePantryItemQuery,
+  deleteShelfQuery,
+  getAllShelvesQuery,
+  updateShelfNameQuery,
+} from "~/api-client/queries.server";
 import { classNames, useIsHydrated, useServerLayoutEffect } from "~/utils/misc";
 import { validateForm } from "~/utils/validation.server";
+import invariant from "tiny-invariant";
+import { getSession } from "~/sessions";
 
-export const loader = async ({ request }: LoaderArgs) => {
-  const user = await requireLoggedInUser(request);
-
+export async function loader({ request }: LoaderArgs) {
+  const cookieHeader = request.headers.get("cookie");
+  const session = await getSession(cookieHeader);
+  const token = session.get("token");
   const url = new URL(request.url);
-  const q = url.searchParams.get("q");
-  const shelves = await getAllShelves(user.id, q);
-  return json({ shelves });
-};
+  const query = url.searchParams.get("q");
+
+  const { currentUser } = await backendRequest({
+    document: getAllShelvesQuery,
+    token,
+    variables: { query },
+  });
+
+  invariant(currentUser?.pantryShelves);
+
+  return json({ shelves: currentUser.pantryShelves });
+}
 
 const deleteShelfSchema = z.object({
   shelfId: z.string(),
@@ -59,26 +66,35 @@ const deleteShelfItemSchema = z.object({
 });
 
 export async function action({ request }: ActionArgs) {
-  const user = await requireLoggedInUser(request);
-
   const formData = await request.formData();
+  const cookieHeader = request.headers.get("cookie");
+  const session = await getSession(cookieHeader);
+  const token = session.get("token");
+
   switch (formData.get("_action")) {
     case "createShelf": {
-      return createShelf(user.id);
+      return backendRequest({
+        token,
+        document: createShelfQuery,
+        variables: { input: { name: "New Shelf" } },
+      });
     }
     case "deleteShelf": {
       return validateForm(
         formData,
         deleteShelfSchema,
         async (data) => {
-          const shelf = await getShelf(data.shelfId);
-          if (shelf !== null && shelf.userId !== user.id) {
-            throw json(
-              { message: "This shelf is not yours, so you cannot delete it" },
-              { status: 401 }
-            );
+          const response = await backendRequest({
+            token,
+            document: deleteShelfQuery,
+            variables: { input: { shelfId: data.shelfId } },
+          });
+
+          if (!response.deletePantryShelf?.success) {
+            throw json(response.deletePantryShelf?.errors, { status: 401 });
           }
-          return deleteShelf(data.shelfId);
+
+          return response;
         },
         (errors) => json({ errors }, { status: 400 })
       );
@@ -87,19 +103,14 @@ export async function action({ request }: ActionArgs) {
       return validateForm(
         formData,
         saveShelfNameSchema,
-        async (data) => {
-          const shelf = await getShelf(data.shelfId);
-          if (shelf !== null && shelf.userId !== user.id) {
-            throw json(
-              {
-                message:
-                  "This shelf is not yours, so you cannot change its name",
-              },
-              { status: 401 }
-            );
-          }
-          return saveShelfName(data.shelfId, data.shelfName);
-        },
+        async (data) =>
+          backendRequest({
+            token,
+            document: updateShelfNameQuery,
+            variables: {
+              input: { name: data.shelfName, shelfId: data.shelfId },
+            },
+          }),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -107,7 +118,14 @@ export async function action({ request }: ActionArgs) {
       return validateForm(
         formData,
         createShelfItemSchema,
-        (data) => createShelfItem(user.id, data.shelfId, data.itemName),
+        (data) =>
+          backendRequest({
+            token,
+            document: createPantryItemQuery,
+            variables: {
+              input: { name: data.itemName, shelfId: data.shelfId },
+            },
+          }),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -115,16 +133,12 @@ export async function action({ request }: ActionArgs) {
       return validateForm(
         formData,
         deleteShelfItemSchema,
-        async (data) => {
-          const item = await getShelfItem(data.itemId);
-          if (item !== null && item.userId !== user.id) {
-            throw json(
-              { message: "This item is not yours, so you cannot delete it" },
-              { status: 401 }
-            );
-          }
-          return deleteShelfItem(data.itemId);
-        },
+        async (data) =>
+          backendRequest({
+            token,
+            document: deletePantryItemQuery,
+            variables: { input: { itemId: data.itemId } },
+          }),
         (errors) => json({ errors }, { status: 400 })
       );
     }
