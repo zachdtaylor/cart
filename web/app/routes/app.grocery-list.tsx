@@ -1,4 +1,4 @@
-import { ActionArgs, json, LoaderArgs } from "@remix-run/node";
+import { type ActionArgs, json, type LoaderArgs } from "@remix-run/node";
 import { useFetcher, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
 import { CheckCircleIcon } from "~/components/icons";

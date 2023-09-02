@@ -1,7 +1,7 @@
 import {
-  ActionArgs,
+  type ActionArgs,
   json,
-  LoaderArgs,
+  type LoaderArgs,
   redirect,
   unstable_composeUploadHandlers,
   unstable_createFileUploadHandler,
@@ -14,7 +14,6 @@ import {
   Link,
   Outlet,
   useActionData,
-  useCatch,
   useFetcher,
   useLoaderData,
   useOutletContext,
@@ -494,10 +493,8 @@ export default function RecipeDetail() {
           className={classNames(
             "w-full h-56 rounded-md outline-none",
             "focus:border-2 focus:p-3 focus:border-primary duration-300",
-            !!(
-              saveInstructionsFetcher?.data?.errors?.instructions ||
+            saveInstructionsFetcher?.data?.errors?.instructions ||
               actionData?.errors?.instructions
-            )
               ? "border-2 border-red-500 p-3"
               : ""
           )}

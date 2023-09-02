@@ -1,5 +1,5 @@
 import ReactModal from "react-modal";
-import { ActionArgs, json, redirect } from "@remix-run/node";
+import { type ActionArgs, json, redirect } from "@remix-run/node";
 import { Form, Link, useActionData } from "@remix-run/react";
 import { z } from "zod";
 import {
@@ -13,7 +13,7 @@ import db from "~/db.server";
 import { canChangeRecipe } from "~/utils/abilities.server";
 import { classNames } from "~/utils/misc";
 import { validateForm } from "~/utils/validation.server";
-import { useRecipeContext } from "../$recipeId";
+import { useRecipeContext } from "./app.recipes.$recipeId";
 
 const updateMealPlanSchema = z.object({
   mealPlanMultiplier: z.preprocess(

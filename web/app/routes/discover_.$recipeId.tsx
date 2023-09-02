@@ -1,4 +1,4 @@
-import { HeadersArgs, LoaderArgs, json } from "@remix-run/node";
+import { type HeadersArgs, type LoaderArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import {
   DiscoverRecipeDetails,
