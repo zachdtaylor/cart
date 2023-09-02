@@ -13,12 +13,12 @@ export async function getCurrentUser(request: Request) {
     return null;
   }
 
-  const { currentUser } = await backendRequest({
+  const response = await backendRequest({
     document: getCurrentUserQuery,
     token,
   });
 
-  return { token, data: currentUser };
+  return { token, data: response?.currentUser };
 }
 
 export async function requireLoggedOutUser(request: Request) {
@@ -37,4 +37,10 @@ export async function requireLoggedInUser(request: Request) {
   }
 
   return user.token;
+}
+
+export async function getToken(request: Request) {
+  const cookieHeader = request.headers.get("cookie");
+  const session = await getSession(cookieHeader);
+  return session.get("token");
 }

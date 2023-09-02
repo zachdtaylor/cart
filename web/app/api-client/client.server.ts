@@ -1,13 +1,6 @@
 import { redirect } from "@remix-run/node";
 import { type GraphQLError } from "graphql";
-import {
-  request,
-  ClientError,
-  GraphQLClient,
-  type ResponseMiddleware,
-  type Variables,
-} from "graphql-request";
-import { getSession } from "~/sessions";
+import { request, ClientError, type Variables } from "graphql-request";
 import { type TypedDocumentNode } from "@graphql-typed-document-node/core";
 
 type ClientOptions = {
@@ -31,31 +24,6 @@ const handleError = (error: GraphQLError, options?: ClientOptions) => {
   }
 };
 
-function getResponseMiddleware(options?: ClientOptions) {
-  const responseMiddleware: ResponseMiddleware = (response) => {
-    if (response instanceof ClientError) {
-      response.response.errors?.forEach((error) => handleError(error, options));
-    }
-  };
-  return responseMiddleware;
-}
-
-export async function getClient(webRequest: Request, options?: ClientOptions) {
-  const cookieHeader = webRequest.headers.get("cookie");
-  const session = await getSession(cookieHeader);
-  const token = session.get("token");
-
-  const graphqlClient = new GraphQLClient(apiUrl, {
-    responseMiddleware: getResponseMiddleware(options),
-  });
-
-  if (typeof token === "string") {
-    graphqlClient.setHeader("authorization", `Bearer ${token}`);
-  }
-
-  return graphqlClient;
-}
-
 type BackendRequestOpts<T, V> = {
   document: TypedDocumentNode<T, V>;
   token: string;
@@ -64,13 +32,23 @@ type BackendRequestOpts<T, V> = {
 export async function backendRequest<
   T,
   V extends Variables | undefined = Variables
->({ document, token, variables }: BackendRequestOpts<T, V>) {
-  return request({
-    url: apiUrl,
-    document,
-    variables,
-    requestHeaders: {
-      authorization: `Bearer ${token}`,
-    },
-  });
+>(
+  { document, token, variables }: BackendRequestOpts<T, V>,
+  options?: ClientOptions
+) {
+  try {
+    const result = await request({
+      url: apiUrl,
+      document,
+      variables,
+      requestHeaders: {
+        authorization: `Bearer ${token}`,
+      },
+    });
+    return result;
+  } catch (error) {
+    if (error instanceof ClientError) {
+      error.response.errors?.forEach((error) => handleError(error, options));
+    }
+  }
 }

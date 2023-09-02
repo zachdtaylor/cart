@@ -7,7 +7,6 @@ import {
 } from "@remix-run/react";
 import React from "react";
 import { z } from "zod";
-import { backendRequest } from "~/api-client/client.server";
 import {
   DeleteButton,
   ErrorMessage,
@@ -16,35 +15,20 @@ import {
   SearchBar,
 } from "~/components/forms";
 import { PlusIcon, SaveIcon, TrashIcon } from "~/components/icons";
-import {
-  createPantryItemQuery,
-  createShelfQuery,
-  deletePantryItemQuery,
-  deleteShelfQuery,
-  getAllShelvesQuery,
-  updateShelfNameQuery,
-} from "~/api-client/queries.server";
 import { classNames, useIsHydrated, useServerLayoutEffect } from "~/utils/misc";
 import { validateForm } from "~/utils/validation.server";
 import invariant from "tiny-invariant";
-import { getSession } from "~/sessions";
+import * as backend from "./backend";
 
 export async function loader({ request }: LoaderArgs) {
-  const cookieHeader = request.headers.get("cookie");
-  const session = await getSession(cookieHeader);
-  const token = session.get("token");
   const url = new URL(request.url);
   const query = url.searchParams.get("q");
 
-  const { currentUser } = await backendRequest({
-    document: getAllShelvesQuery,
-    token,
-    variables: { query },
-  });
+  const response = await backend.getAllShelves(request, query);
 
-  invariant(currentUser?.pantryShelves);
+  invariant(response?.currentUser?.pantryShelves);
 
-  return json({ shelves: currentUser.pantryShelves });
+  return json({ shelves: response.currentUser.pantryShelves });
 }
 
 const deleteShelfSchema = z.object({
@@ -67,35 +51,16 @@ const deleteShelfItemSchema = z.object({
 
 export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
-  const cookieHeader = request.headers.get("cookie");
-  const session = await getSession(cookieHeader);
-  const token = session.get("token");
 
   switch (formData.get("_action")) {
     case "createShelf": {
-      return backendRequest({
-        token,
-        document: createShelfQuery,
-        variables: { input: { name: "New Shelf" } },
-      });
+      return backend.createShelf(request);
     }
     case "deleteShelf": {
       return validateForm(
         formData,
         deleteShelfSchema,
-        async (data) => {
-          const response = await backendRequest({
-            token,
-            document: deleteShelfQuery,
-            variables: { input: { shelfId: data.shelfId } },
-          });
-
-          if (!response.deletePantryShelf?.success) {
-            throw json(response.deletePantryShelf?.errors, { status: 401 });
-          }
-
-          return response;
-        },
+        (data) => backend.deleteShelf(request, data.shelfId),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -103,14 +68,7 @@ export async function action({ request }: ActionArgs) {
       return validateForm(
         formData,
         saveShelfNameSchema,
-        async (data) =>
-          backendRequest({
-            token,
-            document: updateShelfNameQuery,
-            variables: {
-              input: { name: data.shelfName, shelfId: data.shelfId },
-            },
-          }),
+        (data) => backend.saveShelfName(request, data.shelfId, data.shelfName),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -118,14 +76,7 @@ export async function action({ request }: ActionArgs) {
       return validateForm(
         formData,
         createShelfItemSchema,
-        (data) =>
-          backendRequest({
-            token,
-            document: createPantryItemQuery,
-            variables: {
-              input: { name: data.itemName, shelfId: data.shelfId },
-            },
-          }),
+        (data) => backend.createShelfItem(request, data.shelfId, data.itemName),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -133,12 +84,7 @@ export async function action({ request }: ActionArgs) {
       return validateForm(
         formData,
         deleteShelfItemSchema,
-        async (data) =>
-          backendRequest({
-            token,
-            document: deletePantryItemQuery,
-            variables: { input: { itemId: data.itemId } },
-          }),
+        async (data) => backend.deleteShelfItem(request, data.itemId),
         (errors) => json({ errors }, { status: 400 })
       );
     }
