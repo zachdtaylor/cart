@@ -9,11 +9,10 @@ import {
   PrimaryButton,
 } from "~/components/forms";
 import { XIcon } from "~/components/icons";
-import db from "~/db.server";
-import { canChangeRecipe } from "~/utils/abilities.server";
 import { classNames } from "~/utils/misc";
 import { validateForm } from "~/utils/validation.server";
-import { useRecipeContext } from "./app.recipes.$recipeId/route";
+import { useRecipeContext } from "../app.recipes.$recipeId/route";
+import * as backend from "./backend";
 
 const updateMealPlanSchema = z.object({
   mealPlanMultiplier: z.preprocess(
@@ -23,7 +22,6 @@ const updateMealPlanSchema = z.object({
 });
 export async function action({ request, params }: ActionArgs) {
   const recipeId = String(params.recipeId);
-  await canChangeRecipe(request, recipeId);
 
   const formData = await request.formData();
 
@@ -33,20 +31,14 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         updateMealPlanSchema,
         async ({ mealPlanMultiplier }) => {
-          await db.recipe.update({
-            where: { id: recipeId },
-            data: { mealPlanMultiplier },
-          });
+          await backend.addToMealPlan(request, recipeId, mealPlanMultiplier);
           return redirect("..");
         },
         (errors) => json({ errors }, { status: 400 })
       );
     }
     case "removeFromMealPlan": {
-      await db.recipe.update({
-        where: { id: recipeId },
-        data: { mealPlanMultiplier: null },
-      });
+      await backend.removeFromMealPlan(request, recipeId);
       return redirect("..");
     }
     default: {
