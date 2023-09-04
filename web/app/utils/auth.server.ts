@@ -13,10 +13,17 @@ export async function getCurrentUser(request: Request) {
     return null;
   }
 
-  const response = await backendRequest({
-    document: getCurrentUserQuery,
-    token,
-  });
+  const response = await backendRequest(
+    {
+      document: getCurrentUserQuery,
+      token,
+    },
+    {
+      onUnauthorized: () => {
+        console.log("unauthorized");
+      },
+    }
+  );
 
   return { token, data: response?.currentUser };
 }

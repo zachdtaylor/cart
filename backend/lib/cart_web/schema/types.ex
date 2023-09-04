@@ -4,4 +4,5 @@ defmodule CartWeb.Schema.Types do
   import_types(CartWeb.Helpers.Mutations)
   import_types(CartWeb.Schema.AccountsSchema)
   import_types(CartWeb.Schema.PantrySchema)
+  import_types(CartWeb.Schema.RecipesSchema)
 end

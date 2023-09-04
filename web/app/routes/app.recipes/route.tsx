@@ -23,68 +23,40 @@ import {
   RecipeListWrapper,
   RecipePageWrapper,
 } from "~/components/recipes";
-import db from "~/db.server";
-import { requireLoggedInUser } from "~/utils/auth.server";
 import { classNames, useBuildSearchParams } from "~/utils/misc";
+import * as backend from "./backend";
+import invariant from "tiny-invariant";
 
 export async function loader({ request }: LoaderArgs) {
-  const user = await requireLoggedInUser(request);
   const url = new URL(request.url);
-  const q = url.searchParams.get("q");
+  const query = url.searchParams.get("q");
   const filter = url.searchParams.get("filter");
 
-  const recipes = await db.recipe.findMany({
-    where: {
-      userId: user.id,
-      name: {
-        contains: q ?? "",
-        mode: "insensitive",
-      },
-      mealPlanMultiplier: filter === "mealPlanOnly" ? { not: null } : {},
-    },
-    select: {
-      name: true,
-      totalTime: true,
-      imageUrl: true,
-      id: true,
-      mealPlanMultiplier: true,
-    },
-    orderBy: {
-      createdAt: "desc",
-    },
-  });
+  const result = await backend.getRecipes(
+    request,
+    query,
+    filter === "mealPlanOnly"
+  );
 
-  return json({ recipes });
+  invariant(result?.currentUser?.recipes);
+
+  return json({ recipes: result.currentUser.recipes });
 }
 
 export async function action({ request }: ActionArgs) {
-  const user = await requireLoggedInUser(request);
   const formData = await request.formData();
 
   switch (formData.get("_action")) {
     case "createRecipe": {
-      const recipe = await db.recipe.create({
-        data: {
-          userId: user.id,
-          name: "New Recipe",
-          totalTime: "0 min",
-          imageUrl: "https://via.placeholder.com/150?text=Remix+Recipes",
-          instructions: "",
-        },
-      });
+      const recipeId = await backend.createRecipe(request);
 
       const url = new URL(request.url);
-      url.pathname = `/app/recipes/${recipe.id}`;
+      url.pathname = `/app/recipes/${recipeId}`;
 
       return redirect(url.toString());
     }
     case "clearMealPlan": {
-      await db.recipe.updateMany({
-        where: {
-          userId: user.id,
-        },
-        data: { mealPlanMultiplier: null },
-      });
+      await backend.clearMealPlan(request);
       return redirect("/app/recipes");
     }
     default: {
@@ -175,8 +147,10 @@ export default function Recipes() {
                       totalTime={
                         optimisticData.get("totalTime") ?? recipe.totalTime
                       }
-                      mealPlanMultiplier={recipe.mealPlanMultiplier}
-                      imageUrl={recipe.imageUrl}
+                      imageUrl={
+                        recipe.imageUrl ??
+                        "https://via.placeholder.com/150?text=Remix+Recipes"
+                      }
                       isActive={isActive}
                       isLoading={isLoading}
                     />

@@ -19,8 +19,8 @@ defmodule Cart.Repo.Migrations.CreateAllTables do
 
     create table(:recipes) do
       add :name, :string, null: false
-      add :instructions, :string, null: false
-      add :total_time, :string, null: false
+      add :instructions, :string
+      add :total_time, :string
       add :image_url, :string
       add :user_id, references(:users, on_delete: :delete_all), null: false
       add :meal_plan_multiplier, :integer

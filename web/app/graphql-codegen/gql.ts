@@ -13,13 +13,22 @@ import { TypedDocumentNode as DocumentNode } from '@graphql-typed-document-node/
  * Therefore it is highly recommended to use the babel or swc plugin for production.
  */
 const documents = {
+    "\n  query GetCurrentUser {\n    currentUser {\n      id\n      firstName\n      lastName\n      email\n    }\n  }\n": types.GetCurrentUserDocument,
     "\n  query GetAllShelves($query: String) {\n    currentUser {\n      pantryShelves(query: $query) {\n        id\n        name\n        items {\n          id\n          name\n        }\n      }\n    }\n  }\n": types.GetAllShelvesDocument,
     "\n  mutation CreateShelf($input: CreatePantryShelfInput!) {\n    createPantryShelf(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.CreateShelfDocument,
     "\n  mutation DeleteShelf($input: DeletePantryShelfInput!) {\n    deletePantryShelf(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.DeleteShelfDocument,
     "\n  mutation UpdateShelfName($input: UpdatePantryShelfNameInput!) {\n    updatePantryShelfName(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.UpdateShelfNameDocument,
-    "\n  query GetCurrentUser {\n    currentUser {\n      id\n      firstName\n      lastName\n      email\n    }\n  }\n": types.GetCurrentUserDocument,
     "\n  mutation CreatePantryItem($input: CreatePantryItemInput!) {\n    createPantryItem(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.CreatePantryItemDocument,
     "\n  mutation DeletePantryItem($input: DeletePantryItemInput!) {\n    deletePantryItem(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.DeletePantryItemDocument,
+    "\n  query GetRecipe($id: ID!) {\n    currentUser {\n      recipe(id: $id) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n        instructions\n        ingredients {\n          id\n          name\n          amount\n        }\n      }\n    }\n  }\n": types.GetRecipeDocument,
+    "\n  mutation DeleteRecipe($id: ID!) {\n    deleteRecipe(input: { recipeId: $id }) {\n      success\n    }\n  }\n": types.DeleteRecipeDocument,
+    "\n  mutation DeleteIngredient($id: ID!) {\n    deleteIngredient(input: { ingredientId: $id }) {\n      success\n    }\n  }\n": types.DeleteIngredientDocument,
+    "\n  mutation UpdateRecipe($input: UpdateRecipeInput!) {\n    updateRecipe(input: $input) {\n      success\n    }\n  }\n": types.UpdateRecipeDocument,
+    "\n  mutation CreateIngredient($input: CreateIngredientInput!) {\n    createIngredient(input: $input) {\n      success\n    }\n  }\n": types.CreateIngredientDocument,
+    "\n  mutation UpdateIngredient($input: UpdateIngredientInput!) {\n    updateIngredient(input: $input) {\n      success\n    }\n  }\n": types.UpdateIngredientDocument,
+    "\n  query GetRecipes($query: String, $mealPlanOnly: Boolean) {\n    currentUser {\n      recipes(query: $query, mealPlanOnly: $mealPlanOnly) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n      }\n    }\n  }\n": types.GetRecipesDocument,
+    "\n  mutation CreateRecipe($input: CreateRecipeInput!) {\n    createRecipe(input: $input) {\n      success\n      data {\n        id\n      }\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.CreateRecipeDocument,
+    "\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n": types.ClearMealPlanDocument,
     "\n  mutation LogIn($input: LogInUserInput!) {\n    logInUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n": types.LogInDocument,
 };
 
@@ -40,6 +49,10 @@ export function graphql(source: string): unknown;
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
+export function graphql(source: "\n  query GetCurrentUser {\n    currentUser {\n      id\n      firstName\n      lastName\n      email\n    }\n  }\n"): (typeof documents)["\n  query GetCurrentUser {\n    currentUser {\n      id\n      firstName\n      lastName\n      email\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
 export function graphql(source: "\n  query GetAllShelves($query: String) {\n    currentUser {\n      pantryShelves(query: $query) {\n        id\n        name\n        items {\n          id\n          name\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetAllShelves($query: String) {\n    currentUser {\n      pantryShelves(query: $query) {\n        id\n        name\n        items {\n          id\n          name\n        }\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
@@ -56,15 +69,47 @@ export function graphql(source: "\n  mutation UpdateShelfName($input: UpdatePant
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query GetCurrentUser {\n    currentUser {\n      id\n      firstName\n      lastName\n      email\n    }\n  }\n"): (typeof documents)["\n  query GetCurrentUser {\n    currentUser {\n      id\n      firstName\n      lastName\n      email\n    }\n  }\n"];
-/**
- * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
- */
 export function graphql(source: "\n  mutation CreatePantryItem($input: CreatePantryItemInput!) {\n    createPantryItem(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreatePantryItem($input: CreatePantryItemInput!) {\n    createPantryItem(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation DeletePantryItem($input: DeletePantryItemInput!) {\n    deletePantryItem(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation DeletePantryItem($input: DeletePantryItemInput!) {\n    deletePantryItem(input: $input) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetRecipe($id: ID!) {\n    currentUser {\n      recipe(id: $id) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n        instructions\n        ingredients {\n          id\n          name\n          amount\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetRecipe($id: ID!) {\n    currentUser {\n      recipe(id: $id) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n        instructions\n        ingredients {\n          id\n          name\n          amount\n        }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteRecipe($id: ID!) {\n    deleteRecipe(input: { recipeId: $id }) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteRecipe($id: ID!) {\n    deleteRecipe(input: { recipeId: $id }) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation DeleteIngredient($id: ID!) {\n    deleteIngredient(input: { ingredientId: $id }) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation DeleteIngredient($id: ID!) {\n    deleteIngredient(input: { ingredientId: $id }) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateRecipe($input: UpdateRecipeInput!) {\n    updateRecipe(input: $input) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateRecipe($input: UpdateRecipeInput!) {\n    updateRecipe(input: $input) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateIngredient($input: CreateIngredientInput!) {\n    createIngredient(input: $input) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation CreateIngredient($input: CreateIngredientInput!) {\n    createIngredient(input: $input) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation UpdateIngredient($input: UpdateIngredientInput!) {\n    updateIngredient(input: $input) {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation UpdateIngredient($input: UpdateIngredientInput!) {\n    updateIngredient(input: $input) {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query GetRecipes($query: String, $mealPlanOnly: Boolean) {\n    currentUser {\n      recipes(query: $query, mealPlanOnly: $mealPlanOnly) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n      }\n    }\n  }\n"): (typeof documents)["\n  query GetRecipes($query: String, $mealPlanOnly: Boolean) {\n    currentUser {\n      recipes(query: $query, mealPlanOnly: $mealPlanOnly) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation CreateRecipe($input: CreateRecipeInput!) {\n    createRecipe(input: $input) {\n      success\n      data {\n        id\n      }\n      errors {\n        message\n        path\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation CreateRecipe($input: CreateRecipeInput!) {\n    createRecipe(input: $input) {\n      success\n      data {\n        id\n      }\n      errors {\n        message\n        path\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

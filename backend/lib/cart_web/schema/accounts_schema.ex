@@ -6,8 +6,9 @@ defmodule CartWeb.Schema.AccountsSchema do
   use Absinthe.Schema.Notation
   import CartWeb.Helpers.Mutations
 
-  alias CartWeb.Resolvers.PantryResolver
   alias CartWeb.Resolvers.AccountsResolver
+  alias CartWeb.Resolvers.PantryResolver
+  alias CartWeb.Resolvers.RecipesResolver
 
   object :user do
     field :id, non_null(:id)
@@ -19,6 +20,19 @@ defmodule CartWeb.Schema.AccountsSchema do
       arg(:query, :string)
 
       resolve(&PantryResolver.list_pantry_shelves/3)
+    end
+
+    field :recipes, non_null(list_of(non_null(:recipe))) do
+      arg(:query, :string)
+      arg(:meal_plan_only, :boolean)
+
+      resolve(&RecipesResolver.list_recipes/3)
+    end
+
+    field :recipe, :recipe do
+      arg(:id, non_null(:id))
+
+      resolve(&RecipesResolver.get_recipe/3)
     end
   end
 

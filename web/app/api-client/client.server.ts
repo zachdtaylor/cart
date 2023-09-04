@@ -1,10 +1,11 @@
-import { redirect } from "@remix-run/node";
+import { json, redirect } from "@remix-run/node";
 import { type GraphQLError } from "graphql";
 import { request, ClientError, type Variables } from "graphql-request";
 import { type TypedDocumentNode } from "@graphql-typed-document-node/core";
 
 type ClientOptions = {
   onUnauthorized?: () => void;
+  onNotFound?: () => void;
 };
 
 const apiUrl = "http://127.0.0.1:4000/api/graphiql";
@@ -17,6 +18,12 @@ const handleError = (error: GraphQLError, options?: ClientOptions) => {
       } else {
         throw redirect("/login");
       }
+    }
+    case "NOT_FOUND": {
+      if (options?.onNotFound) {
+        options.onNotFound();
+      }
+      throw json({ message: error.message }, { status: 404 });
     }
     default: {
       return;

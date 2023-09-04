@@ -17,5 +17,6 @@ defmodule CartWeb.Schema do
   mutation do
     import_fields(:account_mutations)
     import_fields(:pantry_mutations)
+    import_fields(:recipe_mutations)
   end
 end

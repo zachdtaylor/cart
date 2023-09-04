@@ -33,50 +33,24 @@ import {
   TimeIcon,
   TrashIcon,
 } from "~/components/icons";
-import db from "~/db.server";
-import { handleDelete } from "~/models/utils";
-import { canChangeRecipe } from "~/utils/abilities.server";
-import { requireLoggedInUser } from "~/utils/auth.server";
 import {
   classNames,
   useDebouncedFunction,
   useServerLayoutEffect,
 } from "~/utils/misc";
 import { validateForm } from "~/utils/validation.server";
+import * as backend from "./backend";
+import invariant from "tiny-invariant";
 
 export async function loader({ request, params }: LoaderArgs) {
-  const user = await requireLoggedInUser(request);
-  const recipe = await db.recipe.findUnique({
-    where: { id: params.recipeId },
-    include: {
-      ingredients: {
-        select: {
-          id: true,
-          amount: true,
-          name: true,
-        },
-        orderBy: {
-          createdAt: "asc",
-        },
-      },
-    },
-  });
+  const result = await backend.getRecipe(request, String(params.recipeId));
 
-  if (recipe === null) {
-    throw json(
-      { message: "A recipe with that id does not exist" },
-      { status: 404 }
-    );
-  }
+  invariant(result?.currentUser?.recipe);
 
-  if (recipe.userId !== user.id) {
-    throw json(
-      { message: "You are not authorized to view this recipe" },
-      { status: 401 }
-    );
-  }
-
-  return json({ recipe }, { headers: { "Cache-Control": "max-age=10" } });
+  return json(
+    { recipe: result.currentUser.recipe },
+    { headers: { "Cache-Control": "max-age=10" } }
+  );
 }
 
 const saveNameSchema = z.object({
@@ -131,7 +105,6 @@ const createIngredientSchema = z.object({
 
 export async function action({ request, params }: ActionArgs) {
   const recipeId = String(params.recipeId);
-  await canChangeRecipe(request, recipeId);
 
   let formData;
   if (request.headers.get("Content-Type")?.includes("multipart/form-data")) {
@@ -151,9 +124,7 @@ export async function action({ request, params }: ActionArgs) {
 
   if (typeof _action === "string" && _action.includes("deleteIngredient")) {
     const ingredientId = _action.split(".")[1];
-    return handleDelete(() =>
-      db.ingredient.delete({ where: { id: ingredientId } })
-    );
+    return backend.deleteIngredient(request, ingredientId);
   }
 
   switch (_action) {
@@ -162,21 +133,16 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         saveRecipeSchema,
         ({ ingredientIds, ingredientNames, ingredientAmounts, ...data }) =>
-          db.recipe.update({
-            where: { id: recipeId },
-            data: {
-              ...data,
-              ingredients: {
-                updateMany: ingredientIds?.map((id, index) => ({
-                  where: { id },
-                  data: {
-                    amount: ingredientAmounts?.[index],
-                    name: ingredientNames?.[index],
-                  },
-                })),
-              },
-            },
+          backend.saveRecipe(request, {
+            ...data,
+            id: recipeId,
+            ingredients: ingredientIds?.map((id, index) => ({
+              id,
+              amount: ingredientAmounts?.[index],
+              name: ingredientNames?.[index],
+            })),
           }),
+
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -185,25 +151,23 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         createIngredientSchema,
         ({ newIngredientAmount, newIngredientName }) =>
-          db.ingredient.create({
-            data: {
-              recipeId,
-              amount: newIngredientAmount,
-              name: newIngredientName,
-            },
+          backend.createIngredient(request, {
+            recipeId,
+            name: newIngredientName,
+            amount: newIngredientAmount,
           }),
         (errors) => json({ errors }, { status: 400 })
       );
     }
     case "deleteRecipe": {
-      await handleDelete(() => db.recipe.delete({ where: { id: recipeId } }));
+      await backend.deleteRecipe(request, recipeId);
       return redirect("/app/recipes");
     }
     case "saveName": {
       return validateForm(
         formData,
         saveNameSchema,
-        (data) => db.recipe.update({ where: { id: recipeId }, data }),
+        (data) => backend.saveName(request, recipeId, data.name),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -211,7 +175,7 @@ export async function action({ request, params }: ActionArgs) {
       return validateForm(
         formData,
         saveTotalTimeSchema,
-        (data) => db.recipe.update({ where: { id: recipeId }, data }),
+        (data) => backend.saveTotalTime(request, recipeId, data.totalTime),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -219,7 +183,8 @@ export async function action({ request, params }: ActionArgs) {
       return validateForm(
         formData,
         saveInstructionsSchema,
-        (data) => db.recipe.update({ where: { id: recipeId }, data }),
+        (data) =>
+          backend.saveInstructions(request, recipeId, data.instructions),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -227,8 +192,7 @@ export async function action({ request, params }: ActionArgs) {
       return validateForm(
         formData,
         saveIngredientAmountSchema,
-        ({ id, amount }) =>
-          db.ingredient.update({ where: { id }, data: { amount } }),
+        ({ id, amount }) => backend.saveIngredientAmount(request, id, amount),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -236,8 +200,7 @@ export async function action({ request, params }: ActionArgs) {
       return validateForm(
         formData,
         saveIngredientNameSchema,
-        ({ id, name }) =>
-          db.ingredient.update({ where: { id }, data: { name } }),
+        ({ id, name }) => backend.saveIngredientName(request, id, name),
         (errors) => json({ errors }, { status: 400 })
       );
     }
@@ -374,7 +337,7 @@ export default function RecipeDetail() {
               placeholder="Time"
               autoComplete="off"
               name="totalTime"
-              defaultValue={data.recipe?.totalTime}
+              defaultValue={data.recipe?.totalTime ?? ""}
               error={
                 !!(
                   saveTotalTimeFetcher?.data?.errors?.totalTime ||
@@ -489,7 +452,7 @@ export default function RecipeDetail() {
           id="instructions"
           name="instructions"
           placeholder="Instructions go here"
-          defaultValue={data.recipe?.instructions}
+          defaultValue={data.recipe?.instructions ?? ""}
           className={classNames(
             "w-full h-56 rounded-md outline-none",
             "focus:border-2 focus:p-3 focus:border-primary duration-300",
@@ -532,7 +495,7 @@ export default function RecipeDetail() {
 
 type IngredientRowProps = {
   id: string;
-  amount: string | null;
+  amount?: string | null;
   amountError?: string;
   name: string;
   nameError?: string;
@@ -629,7 +592,7 @@ function IngredientRow({
 type RenderedIngredient = {
   id: string;
   name: string;
-  amount: string | null;
+  amount?: string | null;
   isOptimistic?: boolean;
 };
 function useOptimisticIngredients(

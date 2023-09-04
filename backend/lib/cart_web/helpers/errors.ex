@@ -1,5 +1,6 @@
 defmodule CartWeb.Helpers.Errors do
   @code_unauthorized "UNAUTHORIZED"
+  @code_not_found "NOT_FOUND"
 
   def unauthorized do
     {:error,
@@ -11,5 +12,9 @@ defmodule CartWeb.Helpers.Errors do
     {:error,
      message: "You are not authorized perform this action",
      extensions: %{code: @code_unauthorized}}
+  end
+
+  def not_found do
+    {:error, message: "Resource not found", extensions: %{code: @code_not_found}}
   end
 end

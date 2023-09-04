@@ -5,26 +5,9 @@ import { ErrorMessage, PrimaryButton, PrimaryInput } from "~/components/forms";
 import { commitSession, getSession } from "~/sessions";
 import { formatMutationErrors, validateForm } from "~/utils/validation.server";
 import { requireLoggedOutUser } from "~/utils/auth.server";
-import { graphql } from "~/graphql-codegen";
-import { getClient } from "~/api-client/client.server";
 import { badRequest } from "~/utils/http.server";
 import invariant from "tiny-invariant";
-
-const logInQuery = graphql(`
-  mutation LogIn($input: LogInUserInput!) {
-    logInUser(input: $input) {
-      success
-      data {
-        userId
-        token
-      }
-      errors {
-        path
-        message
-      }
-    }
-  }
-`);
+import { logIn } from "./backend";
 
 export async function loader({ request }: LoaderArgs) {
   await requireLoggedOutUser(request);
@@ -44,15 +27,11 @@ export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
 
   return validateForm(formData, loginSchema, async ({ email, password }) => {
-    const client = await getClient(request);
-    const { logInUser } = await client.request({
-      document: logInQuery,
-      variables: { input: { email, password } },
-    });
+    const response = await logIn(request, email, password);
 
-    if (logInUser?.success) {
-      invariant(logInUser?.data?.token);
-      session.set("token", logInUser.data.token);
+    if (response?.logInUser?.success) {
+      invariant(response.logInUser?.data?.token);
+      session.set("token", response.logInUser.data.token);
 
       return redirect("/", {
         headers: {
@@ -62,7 +41,7 @@ export async function action({ request }: ActionArgs) {
     }
 
     return badRequest({
-      errors: formatMutationErrors(logInUser?.errors),
+      errors: formatMutationErrors(response?.logInUser?.errors),
       email,
     });
   });
