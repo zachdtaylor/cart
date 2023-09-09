@@ -34,6 +34,10 @@ defmodule CartWeb.Schema.AccountsSchema do
 
       resolve(&RecipesResolver.get_recipe/3)
     end
+
+    field :grocery_list_items, non_null(list_of(non_null(:grocery_list_item))) do
+      resolve(&RecipesResolver.list_grocery_list_items/3)
+    end
   end
 
   object :auth_info do

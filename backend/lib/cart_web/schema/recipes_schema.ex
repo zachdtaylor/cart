@@ -30,6 +30,19 @@ defmodule CartWeb.Schema.RecipesSchema do
     end
   end
 
+  object :grocery_list_item_use do
+    field :id, non_null(:id)
+    field :amount, :string
+    field :recipe_name, non_null(:string)
+    field :multiplier, non_null(:integer)
+  end
+
+  object :grocery_list_item do
+    field :id, non_null(:id)
+    field :name, non_null(:string)
+    field :uses, non_null(list_of(non_null(:grocery_list_item_use)))
+  end
+
   input_object :create_recipe_input do
     field :name, non_null(:string)
     field :total_time, :string
@@ -88,6 +101,24 @@ defmodule CartWeb.Schema.RecipesSchema do
 
   mutation_response_object(:update_ingredient_response, :ingredient)
 
+  input_object :check_off_grocery_list_item_input do
+    field :item_name, non_null(:string)
+  end
+
+  object :check_off_grocery_list_item_response do
+    field(:success, non_null(:boolean),
+      description: "Indicates if the mutation completed successfully or not. "
+    )
+
+    field(:errors, non_null(list_of(:mutation_error)),
+      description: "A list of failed validations. May be blank or null if mutation succeeded."
+    )
+
+    field(:data, :pantry_item,
+      description: "The pantry item created. May be null if mutation failed."
+    )
+  end
+
   object :recipe_mutations do
     @desc "Create a new ingredient"
     field :create_ingredient, :create_ingredient_response do
@@ -134,6 +165,13 @@ defmodule CartWeb.Schema.RecipesSchema do
       arg(:input, non_null(:delete_ingredient_input))
 
       resolve(&RecipesResolver.delete_ingredient/3)
+    end
+
+    @desc "Check off an item from the grocery list by adding it to the pantry"
+    field :check_off_grocery_list_item, :check_off_grocery_list_item_response do
+      arg(:input, non_null(:check_off_grocery_list_item_input))
+
+      resolve(&RecipesResolver.check_off_grocery_list_item/3)
     end
   end
 end

@@ -4,6 +4,7 @@ defmodule CartWeb.Abilities do
   alias Cart.Recipes
   alias Cart.Recipes.{Ingredient, Recipe}
 
+  def can?(%User{id: id}, :check_off_grocery_list_item) when is_integer(id), do: true
   def can?(%User{id: id}, :clear_meal_plan) when is_integer(id), do: true
   def can?(_user, _action), do: false
 

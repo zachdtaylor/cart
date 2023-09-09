@@ -6,9 +6,12 @@ defmodule Cart.Recipes do
   import Ecto.Query
 
   alias Cart.Accounts.User
+  alias Cart.Pantry
   alias Cart.Recipes.{Ingredient, Recipe}
   alias Cart.{Pagination, Repo}
   alias Ecto.Multi
+
+  @grocery_trip_shelf_name "Grocery Trip"
 
   @doc """
   Retrieves a recipe belonging to the given user by its id.
@@ -74,19 +77,59 @@ defmodule Cart.Recipes do
     |> Repo.all()
   end
 
-  defp search_by_name(queryable, %{query: query}) when is_binary(query) do
-    queryable
-    |> where([s], ilike(s.name, ^"%#{query}%"))
-  end
+  defp search_by_name(queryable, %{query: query}) when is_binary(query),
+    do: where(queryable, [s], ilike(s.name, ^"%#{query}%"))
 
   defp search_by_name(queryable, _), do: queryable
 
-  defp search_by_meal_plan(queryable, %{meal_plan_only: true}) do
-    queryable
-    |> where([s], not is_nil(s.meal_plan_multiplier))
-  end
+  defp search_by_meal_plan(queryable, %{meal_plan_only: true}),
+    do: where(queryable, [s], not is_nil(s.meal_plan_multiplier))
 
   defp search_by_meal_plan(queryable, _), do: queryable
+
+  @doc """
+  Calculates and returns all grocery list items for the given user.
+  """
+  def list_grocery_list_items(%User{} = user) do
+    Ingredient
+    |> join(:left, [i], r in Recipe, on: r.id == i.recipe_id)
+    |> where([i, r], i.user_id == ^user.id and not is_nil(r.meal_plan_multiplier))
+    |> preload(:recipe)
+    |> Repo.all()
+    |> filter_by_not_in_pantry(user)
+    |> Enum.reduce(%{}, fn ingredient, acc ->
+      ingredient_name = String.downcase(ingredient.name)
+      existing = Map.get(acc, ingredient_name, %{uses: []})
+
+      Map.put(acc, ingredient_name, %{
+        id: ingredient.id,
+        name: ingredient_name,
+        uses:
+          existing.uses ++
+            [
+              %{
+                id: ingredient.recipe.id,
+                amount: ingredient.amount,
+                recipe_name: ingredient.recipe.name,
+                multiplier: ingredient.recipe.meal_plan_multiplier
+              }
+            ]
+      })
+    end)
+    |> Map.values()
+  end
+
+  defp filter_by_not_in_pantry(ingredients, %User{} = user) do
+    pantry_items = Pantry.list_items(user)
+
+    ingredients
+    |> Enum.filter(fn ingredient ->
+      not Enum.any?(pantry_items, fn item -> names_match?(item.name, ingredient.name) end)
+    end)
+  end
+
+  defp names_match?(a, b) when is_binary(a) and is_binary(b),
+    do: String.downcase(a) == String.downcase(b)
 
   @doc """
   Creates a new ingredient.
@@ -212,5 +255,18 @@ defmodule Cart.Recipes do
     |> where([i], i.id == ^id)
     |> select([i], i)
     |> Repo.delete_all()
+  end
+
+  @doc """
+  Checks off an item from the grocery list.
+  """
+  def check_off_grocery_list_item(%User{} = user, item_name) do
+    case Pantry.get_or_create_shelf_by_name(user, @grocery_trip_shelf_name) do
+      {:ok, shelf} ->
+        Pantry.create_item(%{user_id: user.id, shelf_id: shelf.id, name: item_name})
+
+      error ->
+        error
+    end
   end
 end

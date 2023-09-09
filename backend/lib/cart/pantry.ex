@@ -39,12 +39,50 @@ defmodule Cart.Pantry do
   defp search_by_name(queryable, _), do: queryable
 
   @doc """
+  Retrieves all pantry items for the given user.
+  """
+  def list_items(%User{} = user) do
+    PantryItem
+    |> where([p], p.user_id == ^user.id)
+    |> Repo.all()
+  end
+
+  @doc """
   Retrieves a pantry shelf by its id.
   """
   def get_shelf(id) do
     PantryShelf
     |> where([s], s.id == ^id)
     |> Repo.one()
+  end
+
+  @doc """
+  Retrieves a pantry shelf by its name. If not found, creates a new shelf
+  with the given name.
+
+  ## Examples
+
+      iex> get_or_create_shelf_by_name(user, name)
+      {:ok, %PantryShelf{}}
+
+      iex> get_or_create_shelf_by_name(user, name)
+      {:error, %Ecto.Changeset{}}
+
+  """
+  @spec get_or_create_shelf_by_name(User.t(), String.t()) ::
+          {:ok, PantryShelf.t()} | {:error, Ecto.Changeset.t()}
+  def get_or_create_shelf_by_name(%User{} = user, name) do
+    PantryShelf
+    |> where([s], s.user_id == ^user.id and s.name == ^name)
+    |> limit(1)
+    |> Repo.one()
+    |> case do
+      nil ->
+        create_shelf(%{user_id: user.id, name: name})
+
+      shelf ->
+        {:ok, shelf}
+    end
   end
 
   @doc """
@@ -68,6 +106,7 @@ defmodule Cart.Pantry do
       {:error, %Ecto.Changeset{}}
 
   """
+  @spec create_shelf(map) :: {:ok, PantryShelf.t()} | {:error, Ecto.Changeset.t()}
   def create_shelf(%{} = args) do
     %PantryShelf{}
     |> PantryShelf.creation_changeset(args)

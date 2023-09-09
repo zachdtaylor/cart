@@ -1,4 +1,4 @@
-import { ActionArgs, LoaderArgs, json } from "@remix-run/node";
+import { type ActionArgs, type LoaderArgs, json } from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
 import { PrimaryButton } from "~/components/forms";

@@ -40,6 +40,16 @@ defmodule CartWeb.Resolvers.RecipesResolver do
     end
   end
 
+  def list_grocery_list_items(_parent, _args, %{context: context}) do
+    case Map.get(context, :current_user) do
+      %User{} = user ->
+        {:ok, Recipes.list_grocery_list_items(user)}
+
+      :unauthorized ->
+        Errors.unauthorized()
+    end
+  end
+
   ## Mutations
 
   def create_ingredient(_parent, %{input: input}, %{context: context}) do
@@ -152,6 +162,16 @@ defmodule CartWeb.Resolvers.RecipesResolver do
 
       {n, _} when n == 0 ->
         Errors.not_found()
+    end
+  end
+
+  def check_off_grocery_list_item(_parent, %{input: input}, %{context: context}) do
+    user = Map.get(context, :current_user, nil)
+
+    if Abilities.can?(user, :check_off_grocery_list_item) do
+      mutation_response(Recipes.check_off_grocery_list_item(user, input.item_name))
+    else
+      Errors.unauthorized_mutation()
     end
   end
 end
