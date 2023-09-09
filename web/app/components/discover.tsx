@@ -13,11 +13,10 @@ export function DiscoverGrid({ children }: { children: React.ReactNode }) {
 type DiscoverListItemProps = {
   recipe: {
     id: string;
-    imageUrl: string;
+    imageUrl?: string | null;
     name: string;
     user: {
-      firstName: string;
-      lastName: string;
+      fullName: string;
     };
   };
 };
@@ -30,7 +29,7 @@ export function DiscoverListItem({ recipe }: DiscoverListItemProps) {
       <Link to={recipe.id} className="flex flex-col h-full">
         <div className="h-48 overflow-hidden">
           <img
-            src={recipe.imageUrl}
+            src={recipe.imageUrl ?? ""}
             alt={`recipe named ${recipe.name}`}
             className="h-full w-full object-cover rounded-t-md"
           />
@@ -42,7 +41,7 @@ export function DiscoverListItem({ recipe }: DiscoverListItemProps) {
           )}
         >
           <h1 className="font-bold text-xl pb-2">{recipe.name}</h1>
-          <h2>{`${recipe.user.firstName} ${recipe.user.lastName}`}</h2>
+          <h2>{recipe.user.fullName}</h2>
         </div>
       </Link>
     </li>
@@ -82,7 +81,7 @@ export function DiscoverRecipeHeader({ recipe }: DiscoverRecipeHeaderProps) {
 
 type DiscoverRecipeDetailsProps = {
   recipe: {
-    ingredients: Array<{ id: string; amount: string | null; name: string }>;
+    ingredients: Array<{ id: string; amount?: string | null; name: string }>;
     instructions: string;
   };
 };
@@ -92,10 +91,11 @@ export function DiscoverRecipeDetails({ recipe }: DiscoverRecipeDetailsProps) {
       <h2 className="text-xl font-bold">Ingredients</h2>
       <ul className="py-4">
         {recipe.ingredients.map((ingredient) => (
-          <li
-            key={ingredient.id}
-            className="py-1"
-          >{`${ingredient.amount?.trim()} ${ingredient.name.trim()}`}</li>
+          <li key={ingredient.id} className="py-1">
+            {`${
+              ingredient.amount ? ingredient.amount.trim() : ""
+            } ${ingredient.name.trim()}`.trim()}
+          </li>
         ))}
       </ul>
       <h2 className="text-xl font-bold pb-4">Instructions</h2>

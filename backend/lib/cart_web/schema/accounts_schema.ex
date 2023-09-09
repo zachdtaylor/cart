@@ -16,6 +16,10 @@ defmodule CartWeb.Schema.AccountsSchema do
     field :first_name, non_null(:string)
     field :last_name, non_null(:string)
 
+    field :full_name, non_null(:string) do
+      resolve(fn user, _, _ -> {:ok, "#{user.first_name} #{user.last_name}"} end)
+    end
+
     field :pantry_shelves, non_null(list_of(non_null(:pantry_shelf))) do
       arg(:query, :string)
 

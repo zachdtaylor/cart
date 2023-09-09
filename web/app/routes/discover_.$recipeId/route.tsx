@@ -4,9 +4,10 @@ import {
   DiscoverRecipeDetails,
   DiscoverRecipeHeader,
 } from "~/components/discover";
-import db from "~/db.server";
 import { getCurrentUser } from "~/utils/auth.server";
 import { hash } from "~/utils/cryptography.server";
+import * as backend from "./backend";
+import invariant from "tiny-invariant";
 
 export function headers({ loaderHeaders }: HeadersArgs) {
   return {
@@ -16,27 +17,11 @@ export function headers({ loaderHeaders }: HeadersArgs) {
 }
 
 export async function loader({ params, request }: LoaderArgs) {
-  const recipe = await db.recipe.findUnique({
-    where: { id: params.recipeId },
-    include: {
-      ingredients: {
-        select: {
-          id: true,
-          name: true,
-          amount: true,
-        },
-      },
-    },
-  });
+  const result = await backend.getRecipe(String(params.recipeId));
 
-  if (recipe === null) {
-    throw json(
-      {
-        message: `A recipe with id ${params.id} does not exist.`,
-      },
-      { status: 404 }
-    );
-  }
+  invariant(result?.recipe);
+
+  const recipe = result.recipe;
 
   const etag = hash(JSON.stringify(recipe));
 
@@ -45,7 +30,7 @@ export async function loader({ params, request }: LoaderArgs) {
   }
 
   const user = await getCurrentUser(request);
-  const pageEtag = `${hash(user?.id ?? "anonymous")}.${etag}`;
+  const pageEtag = `${hash(user?.data?.id ?? "anonymous")}.${etag}`;
 
   return json(
     { recipe },

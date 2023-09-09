@@ -3,18 +3,27 @@ defmodule CartWeb.Resolvers.RecipesResolver do
 
   alias CartWeb.Abilities
   alias CartWeb.Helpers.Errors
+  alias Cart.Accounts
   alias Cart.Accounts.User
   alias Cart.Recipes
   alias Cart.Recipes.{Ingredient, Recipe}
 
   ## Queries
 
+  def list_all_recipes(_parent, args, _context) do
+    nodes = Recipes.list_recipes(args)
+
+    {:ok, %{total_count: Recipes.count_recipes(), nodes: nodes}}
+  end
+
   def list_recipes(_parent, args, %{context: context}) do
     case Map.get(context, :current_user) do
       %User{} = user ->
         query = Map.get(args, :query)
         meal_plan_only = Map.get(args, :meal_plan_only, false)
-        {:ok, Recipes.list_recipes(user, %{query: query, meal_plan_only: meal_plan_only})}
+
+        {:ok,
+         Recipes.list_recipes(%{user_id: user.id, query: query, meal_plan_only: meal_plan_only})}
 
       :unauthorized ->
         Errors.unauthorized()
@@ -40,6 +49,16 @@ defmodule CartWeb.Resolvers.RecipesResolver do
     end
   end
 
+  def get_recipe_unauthorized(_parent, %{id: id}, _context) do
+    case Recipes.get_recipe(id) do
+      %Recipe{} = recipe ->
+        {:ok, recipe}
+
+      nil ->
+        Errors.not_found()
+    end
+  end
+
   def list_grocery_list_items(_parent, _args, %{context: context}) do
     case Map.get(context, :current_user) do
       %User{} = user ->
@@ -48,6 +67,10 @@ defmodule CartWeb.Resolvers.RecipesResolver do
       :unauthorized ->
         Errors.unauthorized()
     end
+  end
+
+  def get_recipe_user(recipe, _args, _context) do
+    {:ok, Accounts.get_user!(recipe.user_id)}
   end
 
   ## Mutations

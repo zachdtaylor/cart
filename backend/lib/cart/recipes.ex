@@ -56,6 +56,8 @@ defmodule Cart.Recipes do
     |> Repo.one()
   end
 
+  def count_recipes, do: Repo.aggregate(Recipe, :count)
+
   @doc """
   Retrieves all recipes for the given user.
 
@@ -67,15 +69,20 @@ defmodule Cart.Recipes do
     * `:meal_plan_only` - Will return only recipes that are in the meal plan
 
   """
-  def list_recipes(%User{} = user, %{} = args \\ %{}) do
+  def list_recipes(%{} = args \\ %{}) do
     Recipe
-    |> where([s], s.user_id == ^user.id)
+    |> maybe_for_user(args)
     |> search_by_name(args)
     |> search_by_meal_plan(args)
     |> order_by([s], desc: s.inserted_at)
     |> Pagination.paginate(args)
     |> Repo.all()
   end
+
+  defp maybe_for_user(queryable, %{user_id: user_id}) when not is_nil(user_id),
+    do: where(queryable, [s], s.user_id == ^user_id)
+
+  defp maybe_for_user(queryable, _), do: queryable
 
   defp search_by_name(queryable, %{query: query}) when is_binary(query),
     do: where(queryable, [s], ilike(s.name, ^"%#{query}%"))

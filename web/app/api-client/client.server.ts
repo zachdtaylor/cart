@@ -33,7 +33,7 @@ const handleError = (error: GraphQLError, options?: ClientOptions) => {
 
 type BackendRequestOpts<T, V> = {
   document: TypedDocumentNode<T, V>;
-  token: string;
+  token?: string;
   variables?: V;
 };
 export async function backendRequest<
@@ -49,7 +49,7 @@ export async function backendRequest<
       document,
       variables,
       requestHeaders: {
-        authorization: `Bearer ${token}`,
+        authorization: token ? `Bearer ${token}` : "",
       },
     });
     return result;

@@ -5,6 +5,7 @@ defmodule CartWeb.Schema.RecipesSchema do
   """
   use Absinthe.Schema.Notation
   import CartWeb.Helpers.Mutations
+  import CartWeb.Connection
 
   alias CartWeb.Resolvers.RecipesResolver
 
@@ -16,14 +17,17 @@ defmodule CartWeb.Schema.RecipesSchema do
     field :user_id, non_null(:id)
   end
 
-  object :recipe do
+  connection object(:recipe) do
     field :id, non_null(:id)
     field :name, non_null(:string)
     field :instructions, :string
     field :total_time, :string
     field :image_url, :string
     field :meal_plan_multiplier, :integer
-    field :user_id, non_null(:id)
+
+    field :user, non_null(:user) do
+      resolve(&RecipesResolver.get_recipe_user/3)
+    end
 
     field :ingredients, non_null(list_of(non_null(:ingredient))) do
       resolve(&RecipesResolver.list_ingredients/3)

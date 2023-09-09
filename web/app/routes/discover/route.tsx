@@ -1,15 +1,14 @@
 import { useLoaderData } from "@remix-run/react";
 import { DiscoverGrid, DiscoverListItem } from "~/components/discover";
-import db from "~/db.server";
+import * as backend from "./backend";
+import invariant from "tiny-invariant";
 
 export async function loader() {
-  const recipes = await db.recipe.findMany({
-    take: 25,
-    orderBy: { updatedAt: "desc" },
-    include: { user: { select: { firstName: true, lastName: true } } },
-  });
+  const result = await backend.getRecipes();
 
-  return { recipes };
+  invariant(result?.recipes?.nodes);
+
+  return { recipes: result.recipes.nodes };
 }
 
 export default function Discover() {

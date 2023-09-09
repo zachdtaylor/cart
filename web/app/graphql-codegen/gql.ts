@@ -31,6 +31,8 @@ const documents = {
     "\n  query GetRecipes($query: String, $mealPlanOnly: Boolean) {\n    currentUser {\n      recipes(query: $query, mealPlanOnly: $mealPlanOnly) {\n        id\n        name\n        totalTime\n        imageUrl\n        mealPlanMultiplier\n      }\n    }\n  }\n": types.GetRecipesDocument,
     "\n  mutation CreateRecipe($input: CreateRecipeInput!) {\n    createRecipe(input: $input) {\n      success\n      data {\n        id\n      }\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.CreateRecipeDocument,
     "\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n": types.ClearMealPlanDocument,
+    "\n  query Recipes($limit: Int) {\n    recipes(limit: $limit) {\n      nodes {\n        id\n        name\n        imageUrl\n        user {\n          fullName\n        }\n      }\n    }\n  }\n": types.RecipesDocument,
+    "\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n": types.RecipeDocument,
     "\n  mutation LogIn($input: LogInUserInput!) {\n    logInUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n": types.LogInDocument,
 };
 
@@ -120,6 +122,14 @@ export function graphql(source: "\n  mutation CreateRecipe($input: CreateRecipeI
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n"): (typeof documents)["\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Recipes($limit: Int) {\n    recipes(limit: $limit) {\n      nodes {\n        id\n        name\n        imageUrl\n        user {\n          fullName\n        }\n      }\n    }\n  }\n"): (typeof documents)["\n  query Recipes($limit: Int) {\n    recipes(limit: $limit) {\n      nodes {\n        id\n        name\n        imageUrl\n        user {\n          fullName\n        }\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n"): (typeof documents)["\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
