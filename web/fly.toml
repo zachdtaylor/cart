@@ -1,10 +1,12 @@
-# fly.toml app configuration file generated for remix-recipes on 2023-07-08T18:01:07-06:00
+# fly.toml app configuration file generated for cart-web on 2023-09-13T21:56:29-06:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = "remix-recipes"
+app = "cart-web"
 primary_region = "sjc"
+
+[build]
 
 [http_service]
   internal_port = 3000

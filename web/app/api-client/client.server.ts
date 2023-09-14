@@ -8,7 +8,11 @@ type ClientOptions = {
   onNotFound?: () => void;
 };
 
-const apiUrl = "http://127.0.0.1:4000/api/graphiql";
+if (typeof process.env.BACKEND_URL !== "string") {
+  throw new Error("Missing env: BACKEND_URL");
+}
+
+const apiUrl = process.env.BACKEND_URL;
 
 const handleError = (error: GraphQLError, options?: ClientOptions) => {
   switch (error.extensions.code) {

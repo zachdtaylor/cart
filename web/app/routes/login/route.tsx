@@ -1,5 +1,5 @@
 import { type ActionArgs, type LoaderArgs, redirect } from "@remix-run/node";
-import { useActionData } from "@remix-run/react";
+import { Link, useActionData } from "@remix-run/react";
 import { z } from "zod";
 import { ErrorMessage, PrimaryButton, PrimaryInput } from "~/components/forms";
 import { commitSession, getSession } from "~/sessions";
@@ -7,7 +7,7 @@ import { formatMutationErrors, validateForm } from "~/utils/validation.server";
 import { requireLoggedOutUser } from "~/utils/auth.server";
 import { badRequest } from "~/utils/http.server";
 import invariant from "tiny-invariant";
-import { logIn } from "./backend";
+import * as backend from "./backend";
 
 export async function loader({ request }: LoaderArgs) {
   await requireLoggedOutUser(request);
@@ -27,7 +27,7 @@ export async function action({ request }: ActionArgs) {
   const formData = await request.formData();
 
   return validateForm(formData, loginSchema, async ({ email, password }) => {
-    const response = await logIn(request, email, password);
+    const response = await backend.logIn(email, password);
 
     if (response?.logInUser?.success) {
       invariant(response.logInUser?.data?.token);
@@ -76,6 +76,12 @@ export default function Login() {
 
         <PrimaryButton className="w-1/3 mx-auto">Log In</PrimaryButton>
       </form>
+      <p className="mt-4">
+        Don't have an account?{" "}
+        <Link to="/register" className="text-primary">
+          Create one here
+        </Link>
+      </p>
     </div>
   );
 }

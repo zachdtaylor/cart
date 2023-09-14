@@ -83,7 +83,7 @@ export default function App() {
                 <LogoutIcon />
               </AppNavLink>
             ) : (
-              <AppNavLink to="/login">
+              <AppNavLink to="/register">
                 <LoginIcon />
               </AppNavLink>
             )}

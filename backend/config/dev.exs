@@ -10,6 +10,15 @@ config :cart, Cart.Repo,
   show_sensitive_data_on_connection_error: true,
   pool_size: 10
 
+# config :cart, Cart.Repo,
+#   username: "postgres",
+#   password: "XKhhmWy6mdIeGQsZ",
+#   hostname: "db.dohatrtwtuejgcmsnvzx.supabase.co",
+#   database: "postgres",
+#   stacktrace: true,
+#   show_sensitive_data_on_connection_error: true,
+#   pool_size: 10
+
 # For development, we disable any cache and enable
 # debugging and code reloading.
 #

@@ -34,6 +34,7 @@ const documents = {
     "\n  query Recipes($limit: Int) {\n    recipes(limit: $limit) {\n      nodes {\n        id\n        name\n        imageUrl\n        user {\n          fullName\n        }\n      }\n    }\n  }\n": types.RecipesDocument,
     "\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n": types.RecipeDocument,
     "\n  mutation LogIn($input: LogInUserInput!) {\n    logInUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n": types.LogInDocument,
+    "\n  mutation Register($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n": types.RegisterDocument,
 };
 
 /**
@@ -134,6 +135,10 @@ export function graphql(source: "\n  query Recipe($id: ID!) {\n    recipe(id: $i
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
 export function graphql(source: "\n  mutation LogIn($input: LogInUserInput!) {\n    logInUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation LogIn($input: LogInUserInput!) {\n    logInUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation Register($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation Register($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n"];
 
 export function graphql(source: string) {
   return (documents as any)[source] ?? {};

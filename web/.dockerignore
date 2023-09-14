@@ -5,7 +5,6 @@ node_modules
 /public/build
 /public/images
 .env
-.env.prod
 postgres-data
 
 tailwind.css

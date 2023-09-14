@@ -17,9 +17,8 @@ const logInQuery = graphql(`
   }
 `);
 
-export async function logIn(request: Request, email: string, password: string) {
+export async function logIn(email: string, password: string) {
   return backendRequest({
-    token: "",
     document: logInQuery,
     variables: { input: { email, password } },
   });
