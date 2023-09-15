@@ -52,7 +52,7 @@ export async function createRecipe(request: Request) {
       input: {
         name: "New Recipe",
         totalTime: "0 min",
-        imageUrl: "https://via.placeholder.com/150?text=Remix+Recipes",
+        imageUrl: "https://via.placeholder.com/150?text=Placeholder",
       },
     },
   });

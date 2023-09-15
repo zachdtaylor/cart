@@ -51,7 +51,7 @@ export default function Login() {
   const actionData = useActionData();
   return (
     <div className="text-center mt-36">
-      <h1 className="text-3xl mb-8">Remix Recipes</h1>
+      <h1 className="text-3xl mb-8">Cart</h1>
       <ErrorMessage>{actionData?.errors?.general}</ErrorMessage>
       <form method="post" className="mx-auto md:max-w-xs">
         <div className="text-left pb-4">

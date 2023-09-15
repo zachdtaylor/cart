@@ -149,7 +149,7 @@ export default function Recipes() {
                       }
                       imageUrl={
                         recipe.imageUrl ??
-                        "https://via.placeholder.com/150?text=Remix+Recipes"
+                        "https://via.placeholder.com/150?text=Placeholder"
                       }
                       isActive={isActive}
                       isLoading={isLoading}
