@@ -3,10 +3,6 @@ import {
   json,
   type LoaderArgs,
   redirect,
-  unstable_composeUploadHandlers,
-  unstable_createFileUploadHandler,
-  unstable_createMemoryUploadHandler,
-  unstable_parseMultipartFormData,
 } from "@remix-run/node";
 import {
   Form,
@@ -105,21 +101,7 @@ const createIngredientSchema = z.object({
 
 export async function action({ request, params }: ActionArgs) {
   const recipeId = String(params.recipeId);
-
-  let formData;
-  if (request.headers.get("Content-Type")?.includes("multipart/form-data")) {
-    const uploadHandler = unstable_composeUploadHandlers(
-      unstable_createFileUploadHandler({ directory: "public/images" }),
-      unstable_createMemoryUploadHandler()
-    );
-    formData = await unstable_parseMultipartFormData(request, uploadHandler);
-    const image = formData.get("image") as File;
-    if (image.size !== 0) {
-      formData.set("imageUrl", `/images/${image.name}`);
-    }
-  } else {
-    formData = await request.formData();
-  }
+  const formData = await request.formData();
   const _action = formData.get("_action");
 
   if (typeof _action === "string" && _action.includes("deleteIngredient")) {
@@ -468,16 +450,17 @@ export default function RecipeDetail() {
             actionData?.errors?.instructions}
         </ErrorMessage>
         <label
-          htmlFor="image"
+          htmlFor="imageUrl"
           className="block font-bold text-sm pb-2 w-fit mt-4"
         >
-          Image
+          Image URL
         </label>
-        <input
-          id="image"
-          type="file"
-          name="image"
-          key={`${data.recipe?.id}.image`}
+        <Input
+          id="imageUrl"
+          type="text"
+          name="imageUrl"
+          defaultValue={data.recipe?.imageUrl ?? ""}
+          key={`${data.recipe?.id}.imageUrl`}
         />
         <hr className="my-4" />
         <div className="flex justify-between">

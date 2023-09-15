@@ -82,7 +82,7 @@ export function DiscoverRecipeHeader({ recipe }: DiscoverRecipeHeaderProps) {
 type DiscoverRecipeDetailsProps = {
   recipe: {
     ingredients: Array<{ id: string; amount?: string | null; name: string }>;
-    instructions: string;
+    instructions: string | null;
   };
 };
 export function DiscoverRecipeDetails({ recipe }: DiscoverRecipeDetailsProps) {
@@ -99,7 +99,7 @@ export function DiscoverRecipeDetails({ recipe }: DiscoverRecipeDetailsProps) {
         ))}
       </ul>
       <h2 className="text-xl font-bold pb-4">Instructions</h2>
-      {recipe.instructions.split("\n").map((paragraph, idx) =>
+      {recipe.instructions?.split("\n").map((paragraph, idx) =>
         paragraph === "" ? null : (
           <p key={idx} className="pb-6">
             {paragraph}

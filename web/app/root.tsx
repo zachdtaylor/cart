@@ -28,10 +28,7 @@ import { getCurrentUser } from "./utils/auth.server";
 import styles from "./tailwind.css";
 
 export function meta() {
-  return [
-    { title: "Remix Recipes" },
-    { description: "Welcome to the Remix Recipes app!" },
-  ];
+  return [{ title: "Cart" }, { description: "Welcome to the Cart app!" }];
 }
 
 export const links: LinksFunction = () => {
