@@ -4,6 +4,7 @@ defmodule Cart.Recipes.Recipe do
 
   alias Cart.Accounts.User
   alias Cart.Recipes.Ingredient
+  alias __MODULE__
 
   schema "recipes" do
     field :name, :string
@@ -13,6 +14,7 @@ defmodule Cart.Recipes.Recipe do
     field :meal_plan_multiplier, :integer
 
     belongs_to :user, User
+    belongs_to :original, Recipe
 
     has_many :ingredients, Ingredient
 
@@ -22,9 +24,19 @@ defmodule Cart.Recipes.Recipe do
   @doc """
   A changeset for creating a new recipe.
   """
-  def creation_changeset(ingredient, attrs) do
-    ingredient
+  def creation_changeset(recipe, attrs) do
+    recipe
     |> cast(attrs, [:name, :total_time, :image_url, :user_id])
+    |> validate_required([:name, :user_id])
+    |> validate_name()
+  end
+
+  @doc """
+  A changeset for copying a recipe.
+  """
+  def copy_changeset(recipe, attrs) do
+    recipe
+    |> cast(attrs, [:name, :total_time, :image_url, :instructions, :user_id, :original_id])
     |> validate_required([:name, :user_id])
     |> validate_name()
   end

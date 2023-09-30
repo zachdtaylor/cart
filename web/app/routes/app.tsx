@@ -5,7 +5,7 @@ export default function App() {
     <PageLayout
       title="App"
       links={[
-        { to: "recipes", label: "Recipes" },
+        { to: "recipes", label: "Recipe Book" },
         { to: "pantry", label: "Pantry" },
         { to: "grocery-list", label: "Grocery List" },
       ]}

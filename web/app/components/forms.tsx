@@ -31,8 +31,8 @@ export function PrimaryButton({ className, isLoading, ...props }: ButtonProps) {
     <Button
       {...props}
       className={classNames(
-        "text-white bg-primary hover:bg-primary-light",
-        isLoading ? "bg-primary-light" : "",
+        "text-white hover:bg-primary-light",
+        isLoading || props.disabled ? "bg-primary-light" : "bg-primary",
         className
       )}
     />
@@ -117,7 +117,7 @@ interface InputProps extends InputHTMLAttributes<HTMLInputElement> {
   error?: boolean;
 }
 export const Input = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ error, className, ...props }, ref) => {
+  function Input({ error, className, ...props }, ref) {
     return (
       <input
         ref={ref}

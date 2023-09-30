@@ -24,6 +24,12 @@ defmodule CartWeb.Schema.RecipesSchema do
     field :total_time, :string
     field :image_url, :string
     field :meal_plan_multiplier, :integer
+    field :original_id, :id
+
+    @desc "Indicates if the current user has copied this recipe. Will be null if not logged in."
+    field :copied_by_current_user, :boolean do
+      resolve(&RecipesResolver.copied_by_current_user/3)
+    end
 
     field :user, non_null(:user) do
       resolve(&RecipesResolver.get_recipe_user/3)
@@ -123,7 +129,16 @@ defmodule CartWeb.Schema.RecipesSchema do
     )
   end
 
+  mutation_response_object(:copy_recipe_response, :recipe)
+
   object :recipe_mutations do
+    @desc "Copy a recipe"
+    field :copy_recipe, :copy_recipe_response do
+      arg(:recipe_id, non_null(:id))
+
+      resolve(&RecipesResolver.copy_recipe/3)
+    end
+
     @desc "Create a new ingredient"
     field :create_ingredient, :create_ingredient_response do
       arg(:input, non_null(:create_ingredient_input))

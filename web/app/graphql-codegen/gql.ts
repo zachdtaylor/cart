@@ -32,7 +32,8 @@ const documents = {
     "\n  mutation CreateRecipe($input: CreateRecipeInput!) {\n    createRecipe(input: $input) {\n      success\n      data {\n        id\n      }\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.CreateRecipeDocument,
     "\n  mutation ClearMealPlan {\n    clearMealPlan {\n      success\n    }\n  }\n": types.ClearMealPlanDocument,
     "\n  query Recipes($limit: Int) {\n    recipes(limit: $limit) {\n      nodes {\n        id\n        name\n        imageUrl\n        user {\n          fullName\n        }\n      }\n    }\n  }\n": types.RecipesDocument,
-    "\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n": types.RecipeDocument,
+    "\n  query DiscoverDetailPage($id: ID!) {\n    currentUser {\n      id\n    }\n    recipe(id: $id) {\n      id\n      copiedByCurrentUser\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n      user {\n        id\n      }\n    }\n  }\n": types.DiscoverDetailPageDocument,
+    "\n  mutation SaveToRecipeBook($recipeId: ID!) {\n    copyRecipe(recipeId: $recipeId) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n": types.SaveToRecipeBookDocument,
     "\n  mutation LogIn($input: LogInUserInput!) {\n    logInUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n": types.LogInDocument,
     "\n  mutation Register($input: RegisterUserInput!) {\n    registerUser(input: $input) {\n      success\n      data {\n        userId\n        token\n      }\n      errors {\n        path\n        message\n      }\n    }\n  }\n": types.RegisterDocument,
 };
@@ -130,7 +131,11 @@ export function graphql(source: "\n  query Recipes($limit: Int) {\n    recipes(l
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */
-export function graphql(source: "\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n"): (typeof documents)["\n  query Recipe($id: ID!) {\n    recipe(id: $id) {\n      id\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n    }\n  }\n"];
+export function graphql(source: "\n  query DiscoverDetailPage($id: ID!) {\n    currentUser {\n      id\n    }\n    recipe(id: $id) {\n      id\n      copiedByCurrentUser\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n      user {\n        id\n      }\n    }\n  }\n"): (typeof documents)["\n  query DiscoverDetailPage($id: ID!) {\n    currentUser {\n      id\n    }\n    recipe(id: $id) {\n      id\n      copiedByCurrentUser\n      name\n      imageUrl\n      totalTime\n      instructions\n      ingredients {\n        id\n        name\n        amount\n      }\n      user {\n        id\n      }\n    }\n  }\n"];
+/**
+ * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
+ */
+export function graphql(source: "\n  mutation SaveToRecipeBook($recipeId: ID!) {\n    copyRecipe(recipeId: $recipeId) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n"): (typeof documents)["\n  mutation SaveToRecipeBook($recipeId: ID!) {\n    copyRecipe(recipeId: $recipeId) {\n      success\n      errors {\n        message\n        path\n      }\n    }\n  }\n"];
 /**
  * The graphql function is used to parse GraphQL queries into a document that can be used by GraphQL clients.
  */

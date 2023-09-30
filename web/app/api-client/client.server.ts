@@ -18,14 +18,14 @@ const handleError = (error: GraphQLError, options?: ClientOptions) => {
   switch (error.extensions.code) {
     case "UNAUTHORIZED": {
       if (options?.onUnauthorized) {
-        options.onUnauthorized();
+        return options.onUnauthorized();
       } else {
         throw redirect("/login");
       }
     }
     case "NOT_FOUND": {
       if (options?.onNotFound) {
-        options.onNotFound();
+        return options.onNotFound();
       }
       throw json({ message: error.message }, { status: 404 });
     }
@@ -60,6 +60,7 @@ export async function backendRequest<
   } catch (error) {
     if (error instanceof ClientError) {
       error.response.errors?.forEach((error) => handleError(error, options));
+      return error.response.data as Awaited<T>;
     }
   }
 }

@@ -39,9 +39,10 @@ defmodule Cart.Recipes do
   end
 
   @doc """
-  Retrieves a recipe by its id.
+  Retrieves a recipe by its id. Returns `nil` if the recipe does not exist.
   """
-  def get_recipe(id) do
+  @spec get_recipe(binary() | integer()) :: Recipe.t() | nil
+  def get_recipe(id) when is_integer(id) or is_binary(id) do
     Recipe
     |> where([r], r.id == ^id)
     |> Repo.one()
@@ -67,6 +68,7 @@ defmodule Cart.Recipes do
     * `:skip` - Skips the first `:skip` results
     * `:query` - Filters results by name
     * `:meal_plan_only` - Will return only recipes that are in the meal plan
+    * `:original_only` - Will return only recipes that are not copies
 
   """
   def list_recipes(%{} = args \\ %{}) do
@@ -74,6 +76,7 @@ defmodule Cart.Recipes do
     |> maybe_for_user(args)
     |> search_by_name(args)
     |> search_by_meal_plan(args)
+    |> search_by_original(args)
     |> order_by([s], desc: s.inserted_at)
     |> Pagination.paginate(args)
     |> Repo.all()
@@ -93,6 +96,11 @@ defmodule Cart.Recipes do
     do: where(queryable, [s], not is_nil(s.meal_plan_multiplier))
 
   defp search_by_meal_plan(queryable, _), do: queryable
+
+  defp search_by_original(queryable, %{original_only: true}),
+    do: where(queryable, [s], is_nil(s.original_id))
+
+  defp search_by_original(queryable, _), do: queryable
 
   @doc """
   Calculates and returns all grocery list items for the given user.
@@ -137,6 +145,53 @@ defmodule Cart.Recipes do
 
   defp names_match?(a, b) when is_binary(a) and is_binary(b),
     do: String.downcase(a) == String.downcase(b)
+
+  @doc """
+  Copies the given recipe, including all ingredients.
+  """
+  def copy_recipe(%User{} = user, %Recipe{} = recipe) do
+    Ecto.Multi.new()
+    |> Ecto.Multi.insert(:copy, fn _changes ->
+      Recipe.copy_changeset(
+        %Recipe{},
+        %{
+          name: recipe.name,
+          total_time: recipe.total_time,
+          image_url: recipe.image_url,
+          instructions: recipe.instructions,
+          user_id: user.id,
+          original_id: recipe.id
+        }
+      )
+    end)
+    |> Ecto.Multi.insert_all(:ingredient_copies, Ingredient, fn %{copy: copy} ->
+      recipe = Repo.preload(recipe, :ingredients)
+
+      Enum.map(recipe.ingredients, fn ingredient ->
+        %{
+          name: ingredient.name,
+          amount: ingredient.amount,
+          user_id: user.id,
+          recipe_id: copy.id,
+          inserted_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second),
+          updated_at: NaiveDateTime.utc_now() |> NaiveDateTime.truncate(:second)
+        }
+      end)
+    end)
+    |> Repo.transaction()
+  end
+
+  @doc """
+  Checks if a recipe has been copied by the given user.
+  """
+  def copied?(%User{} = user, %Recipe{} = recipe) do
+    query = from(r in Recipe, where: r.user_id == ^user.id and r.original_id == ^recipe.id)
+
+    case Repo.aggregate(query, :count) do
+      0 -> false
+      _ -> true
+    end
+  end
 
   @doc """
   Creates a new ingredient.

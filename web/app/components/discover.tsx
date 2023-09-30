@@ -50,16 +50,16 @@ export function DiscoverListItem({ recipe }: DiscoverListItemProps) {
 
 type DiscoverRecipeHeaderProps = {
   recipe: {
-    imageUrl: string;
+    imageUrl?: string | null;
     name: string;
-    totalTime: string;
+    totalTime?: string | null;
   };
 };
 export function DiscoverRecipeHeader({ recipe }: DiscoverRecipeHeaderProps) {
   return (
     <div className="relative">
       <img
-        src={recipe.imageUrl}
+        src={recipe.imageUrl ?? ""}
         alt={`recipe named ${recipe.name}`}
         className="h-44 w-full object-cover"
       />
@@ -82,7 +82,7 @@ export function DiscoverRecipeHeader({ recipe }: DiscoverRecipeHeaderProps) {
 type DiscoverRecipeDetailsProps = {
   recipe: {
     ingredients: Array<{ id: string; amount?: string | null; name: string }>;
-    instructions: string | null;
+    instructions?: string | null;
   };
 };
 export function DiscoverRecipeDetails({ recipe }: DiscoverRecipeDetailsProps) {

@@ -11,7 +11,7 @@ defmodule CartWeb.Resolvers.RecipesResolver do
   ## Queries
 
   def list_all_recipes(_parent, args, _context) do
-    nodes = Recipes.list_recipes(args)
+    nodes = args |> Map.put(:original_only, true) |> Recipes.list_recipes()
 
     {:ok, %{total_count: Recipes.count_recipes(), nodes: nodes}}
   end
@@ -73,7 +73,39 @@ defmodule CartWeb.Resolvers.RecipesResolver do
     {:ok, Accounts.get_user!(recipe.user_id)}
   end
 
+  def copied_by_current_user(recipe, _args, %{context: context}) do
+    case Map.get(context, :current_user) do
+      %User{} = user ->
+        {:ok, Recipes.copied?(user, recipe)}
+
+      :unauthorized ->
+        {:ok, nil}
+    end
+  end
+
   ## Mutations
+
+  def copy_recipe(_parent, %{recipe_id: recipe_id}, %{context: context}) do
+    user = Map.get(context, :current_user, nil)
+    recipe = Recipes.get_recipe(recipe_id)
+
+    case Abilities.can?(user, :copy, recipe) do
+      true -> do_copy_recipe(user, recipe)
+      false -> Errors.unauthorized_mutation()
+      :already_copied -> Errors.already_copied()
+      :own_recipe -> Errors.cannot_copy_own_recipe()
+    end
+  end
+
+  defp do_copy_recipe(user, recipe) do
+    user
+    |> Recipes.copy_recipe(recipe)
+    |> case do
+      {:ok, %{copy: copy}} -> {:ok, copy}
+      errors -> errors
+    end
+    |> mutation_response()
+  end
 
   def create_ingredient(_parent, %{input: input}, %{context: context}) do
     user = Map.get(context, :current_user, nil)

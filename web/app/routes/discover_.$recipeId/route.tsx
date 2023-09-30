@@ -1,55 +1,65 @@
-import { type HeadersArgs, type LoaderArgs, json } from "@remix-run/node";
+import { type ActionArgs, type LoaderArgs, json } from "@remix-run/node";
 import { useLoaderData } from "@remix-run/react";
 import {
   DiscoverRecipeDetails,
   DiscoverRecipeHeader,
 } from "~/components/discover";
-import { getCurrentUser } from "~/utils/auth.server";
-import { hash } from "~/utils/cryptography.server";
 import * as backend from "./backend";
 import invariant from "tiny-invariant";
-
-export function headers({ loaderHeaders }: HeadersArgs) {
-  return {
-    etag: loaderHeaders.get("x-page-etag"),
-    "Cache-Control": `max-age=3600, stale-while-revalidate=${3600 * 24 * 7}`,
-  };
-}
+import { PrimaryButton } from "~/components/forms";
 
 export async function loader({ params, request }: LoaderArgs) {
-  const result = await backend.getRecipe(String(params.recipeId));
+  const result = await backend.getDiscoverDetailPageData(
+    request,
+    String(params.recipeId)
+  );
 
   invariant(result?.recipe);
 
   const recipe = result.recipe;
+  const user = result?.currentUser;
 
-  const etag = hash(JSON.stringify(recipe));
+  return json({ recipe, user });
+}
 
-  if (etag === request.headers.get("if-none-match")) {
-    return new Response(null, { status: 304 });
-  }
+export async function action({ request, params }: ActionArgs) {
+  const formData = await request.formData();
+  const recipeId = String(params.recipeId);
 
-  const user = await getCurrentUser(request);
-  const pageEtag = `${hash(user?.data?.id ?? "anonymous")}.${etag}`;
-
-  return json(
-    { recipe },
-    {
-      headers: {
-        etag,
-        "x-page-etag": pageEtag,
-        "cache-control": "max-age=5, stale-while-revalidate=10",
-      },
+  switch (formData.get("_action")) {
+    case "saveToRecipeBook": {
+      return backend.saveToRecipeBook(request, recipeId);
     }
-  );
+    default: {
+      return null;
+    }
+  }
 }
 
 export default function DiscoverRecipe() {
   const data = useLoaderData<typeof loader>();
+  const recipe = data.recipe;
+  const user = data.user;
 
   return (
     <div className="md:h-[calc(100vh-1rem)] m-[-1rem] overflow-auto">
       <DiscoverRecipeHeader recipe={data.recipe} />
+      <form method="post" className="pt-4 pl-4 pr-4 md:float-right">
+        {user &&
+        recipe.user.id === user.id ? null : recipe.copiedByCurrentUser ? (
+          <PrimaryButton className="w-full" disabled>
+            ✓ Saved to my Recipe Book
+          </PrimaryButton>
+        ) : user ? (
+          <PrimaryButton
+            className="w-full"
+            name="_action"
+            value="saveToRecipeBook"
+          >
+            Save to my Recipe Book
+          </PrimaryButton>
+        ) : null}
+      </form>
       <DiscoverRecipeDetails recipe={data.recipe} />
     </div>
   );

@@ -15,6 +15,7 @@ defmodule CartWeb.Schema do
       resolve(&AccountsResolver.current_user/3)
     end
 
+    @desc "Lists all original recipes."
     connection field :recipes, :recipe do
       resolve(&RecipesResolver.list_all_recipes/3)
     end
