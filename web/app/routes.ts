@@ -36,6 +36,7 @@ export default [
   route("discover/:recipeId", "routes/discover_.$recipeId/route.tsx"),
   route("login", "routes/login/route.tsx"),
   route("logout", "routes/logout.tsx"),
+  route("register", "routes/register/route.tsx"),
   route("settings", "routes/settings.tsx", [
     index("routes/settings._index.tsx"),
     route("app", "routes/settings.app.tsx"),

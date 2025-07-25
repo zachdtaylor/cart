@@ -1,15 +1,21 @@
-import { type LoaderFunctionArgs, data } from "react-router";
+import { type LoaderFunctionArgs, data, redirect } from "react-router";
 import { destroySession, getSession } from "~/sessions";
 
 export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("cookie");
   const session = await getSession(cookieHeader);
 
-  return data("ok", {
-    headers: {
-      "Set-Cookie": await destroySession(session),
-    },
-  });
+  const url = new URL(request.url);
+
+  const headers = {
+    "Set-Cookie": await destroySession(session),
+  };
+
+  if (url.searchParams.get("headless") === "true") {
+    return redirect("/login", { headers });
+  }
+
+  return data("ok", { headers });
 }
 
 export default function Logout() {

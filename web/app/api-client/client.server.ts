@@ -20,7 +20,7 @@ const handleError = (error: GraphQLError, options?: ClientOptions) => {
       if (options?.onUnauthorized) {
         return options.onUnauthorized();
       } else {
-        throw redirect("/login");
+        throw redirect("/logout?headless=true");
       }
     }
     case "NOT_FOUND": {
