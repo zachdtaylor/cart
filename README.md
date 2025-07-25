@@ -2,7 +2,7 @@
 
 This is a monorepo for the Cart app.
 
-Right now, the app is made up of a GraphQL api written in Elixir and a web frontend written with Remix.
+Right now, the app is made up of a GraphQL api written in Elixir and a web frontend written with React Router v7.
 
 ## Backend
 
