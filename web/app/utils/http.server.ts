@@ -1,5 +1,5 @@
-import { json } from "@remix-run/node";
+import { data as remixData } from "react-router";
 
 export function badRequest<T>(data: T) {
-  return json(data, { status: 400 });
+  return remixData(data, { status: 400 });
 }

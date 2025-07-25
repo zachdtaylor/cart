@@ -1,10 +1,5 @@
-import { type ActionArgs, json, type LoaderArgs } from "@remix-run/node";
-import {
-  isRouteErrorResponse,
-  useFetcher,
-  useLoaderData,
-  useRouteError,
-} from "@remix-run/react";
+import { type ActionFunctionArgs, data, type LoaderFunctionArgs } from "react-router";
+import { isRouteErrorResponse, useFetcher, useLoaderData, useRouteError } from "react-router";
 import React from "react";
 import { z } from "zod";
 import {
@@ -20,7 +15,7 @@ import { validateForm } from "~/utils/validation.server";
 import invariant from "tiny-invariant";
 import * as backend from "./backend";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const query = url.searchParams.get("q");
 
@@ -28,7 +23,7 @@ export async function loader({ request }: LoaderArgs) {
 
   invariant(response?.currentUser?.pantryShelves);
 
-  return json({ shelves: response.currentUser.pantryShelves });
+  return { shelves: response.currentUser.pantryShelves };
 }
 
 const deleteShelfSchema = z.object({
@@ -49,7 +44,7 @@ const deleteShelfItemSchema = z.object({
   itemId: z.string(),
 });
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   switch (formData.get("_action")) {
@@ -61,7 +56,7 @@ export async function action({ request }: ActionArgs) {
         formData,
         deleteShelfSchema,
         (data) => backend.deleteShelf(request, data.shelfId),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "saveShelfName": {
@@ -69,7 +64,7 @@ export async function action({ request }: ActionArgs) {
         formData,
         saveShelfNameSchema,
         (data) => backend.saveShelfName(request, data.shelfId, data.shelfName),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "createShelfItem": {
@@ -77,7 +72,7 @@ export async function action({ request }: ActionArgs) {
         formData,
         createShelfItemSchema,
         (data) => backend.createShelfItem(request, data.shelfId, data.itemName),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "deleteShelfItem": {
@@ -85,7 +80,7 @@ export async function action({ request }: ActionArgs) {
         formData,
         deleteShelfItemSchema,
         async (data) => backend.deleteShelfItem(request, data.itemId),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     default: {
@@ -147,9 +142,9 @@ type ShelfProps = {
   };
 };
 function Shelf({ shelf }: ShelfProps) {
-  const deleteShelfFetcher = useFetcher();
-  const saveShelfNameFetcher = useFetcher();
-  const createShelfItemFetcher = useFetcher();
+  const deleteShelfFetcher = useFetcher<any>();
+  const saveShelfNameFetcher = useFetcher<any>();
+  const createShelfItemFetcher = useFetcher<any>();
   const createItemFormRef = React.useRef<HTMLFormElement>(null);
   const { renderedItems, addItem } = useOptimisticItems(
     shelf.items,
@@ -300,7 +295,7 @@ type ShelfItemProps = {
 };
 
 function ShelfItem({ shelfItem }: ShelfItemProps) {
-  const deleteShelfItemFetcher = useFetcher();
+  const deleteShelfItemFetcher = useFetcher<any>();
   const isDeletingItem = !!deleteShelfItemFetcher.formData;
   return isDeletingItem ? null : (
     <li className="py-2">

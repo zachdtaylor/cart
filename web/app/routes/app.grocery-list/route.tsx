@@ -1,25 +1,25 @@
-import { type ActionArgs, json, type LoaderArgs } from "@remix-run/node";
+import { type ActionFunctionArgs, data, type LoaderFunctionArgs } from "react-router";
 import { type GroceryListItem as GroceryListItemType } from "~/graphql-codegen/graphql";
-import { useFetcher, useLoaderData } from "@remix-run/react";
+import { useFetcher, useLoaderData } from "react-router";
 import { z } from "zod";
 import { CheckCircleIcon } from "~/components/icons";
 import { validateForm } from "~/utils/validation.server";
 import * as backend from "./backend";
 import invariant from "tiny-invariant";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const result = await backend.getGroceryListItems(request);
 
   invariant(result?.currentUser?.groceryListItems);
 
-  return json({ groceryList: result.currentUser.groceryListItems });
+  return { groceryList: result.currentUser.groceryListItems };
 }
 
 const checkOffItemSchema = z.object({
   name: z.string(),
 });
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   switch (formData.get("_action")) {
@@ -28,7 +28,7 @@ export async function action({ request }: ActionArgs) {
         formData,
         checkOffItemSchema,
         ({ name }) => backend.checkOffItem(request, name),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     default: {

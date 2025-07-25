@@ -1,5 +1,5 @@
-import { redirect, type ActionArgs } from "@remix-run/node";
-import { Link, useActionData } from "@remix-run/react";
+import { redirect, type ActionFunctionArgs } from "react-router";
+import { Link, useActionData } from "react-router";
 import { z } from "zod";
 import { ErrorMessage, PrimaryButton, PrimaryInput } from "~/components/forms";
 import { commitSession, getSession } from "~/sessions";
@@ -15,7 +15,7 @@ const registerSchema = z.object({
   password: z.string(),
 });
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const cookieHeader = request.headers.get("cookie");
   const session = await getSession(cookieHeader);
   const formData = await request.formData();

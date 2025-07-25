@@ -1,6 +1,6 @@
 import ReactModal from "react-modal";
-import { type ActionArgs, json, redirect } from "@remix-run/node";
-import { Form, Link, useActionData } from "@remix-run/react";
+import { type ActionFunctionArgs, data, redirect } from "react-router";
+import { Form, Link, useActionData } from "react-router";
 import { z } from "zod";
 import {
   DeleteButton,
@@ -20,7 +20,7 @@ const updateMealPlanSchema = z.object({
     z.number().min(1)
   ),
 });
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const recipeId = String(params.recipeId);
 
   const formData = await request.formData();
@@ -34,7 +34,7 @@ export async function action({ request, params }: ActionArgs) {
           await backend.addToMealPlan(request, recipeId, mealPlanMultiplier);
           return redirect("..");
         },
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "removeFromMealPlan": {

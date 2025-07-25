@@ -1,9 +1,8 @@
-import { type LinksFunction, type LoaderArgs, json } from "@remix-run/node";
+import { type LinksFunction, type LoaderFunctionArgs } from "react-router";
 import {
   isRouteErrorResponse,
   Link,
   Links,
-  LiveReload,
   Meta,
   NavLink,
   Outlet,
@@ -13,7 +12,7 @@ import {
   useResolvedPath,
   useRouteError,
   useNavigation,
-} from "@remix-run/react";
+} from "react-router";
 import {
   DiscoverIcon,
   LoginIcon,
@@ -25,7 +24,7 @@ import { classNames } from "./utils/misc";
 import React from "react";
 import { getCurrentUser } from "./utils/auth.server";
 
-import styles from "./tailwind.css";
+import styles from "./tailwind.css?url";
 
 export function meta() {
   return [{ title: "Cart" }, { description: "Welcome to the Cart app!" }];
@@ -38,14 +37,14 @@ export const links: LinksFunction = () => {
   ];
 };
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const user = await getCurrentUser(request);
 
-  return json({ isLoggedIn: user !== null });
+  return { isLoggedIn: user !== null };
 }
 
 export default function App() {
-  const data = useLoaderData();
+  const data = useLoaderData<typeof loader>();
   return (
     <html lang="en">
       <head>
@@ -91,7 +90,6 @@ export default function App() {
         </div>
         <ScrollRestoration />
         <Scripts />
-        <LiveReload />
       </body>
     </html>
   );

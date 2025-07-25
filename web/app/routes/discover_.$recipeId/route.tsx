@@ -1,5 +1,5 @@
-import { type ActionArgs, type LoaderArgs, json } from "@remix-run/node";
-import { useLoaderData } from "@remix-run/react";
+import { type ActionFunctionArgs, type LoaderFunctionArgs } from "react-router";
+import { useLoaderData } from "react-router";
 import {
   DiscoverRecipeDetails,
   DiscoverRecipeHeader,
@@ -8,7 +8,7 @@ import * as backend from "./backend";
 import invariant from "tiny-invariant";
 import { PrimaryButton } from "~/components/forms";
 
-export async function loader({ params, request }: LoaderArgs) {
+export async function loader({ params, request }: LoaderFunctionArgs) {
   const result = await backend.getDiscoverDetailPageData(
     request,
     String(params.recipeId)
@@ -19,10 +19,10 @@ export async function loader({ params, request }: LoaderArgs) {
   const recipe = result.recipe;
   const user = result?.currentUser;
 
-  return json({ recipe, user });
+  return { recipe, user };
 }
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const formData = await request.formData();
   const recipeId = String(params.recipeId);
 

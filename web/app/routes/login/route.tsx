@@ -1,5 +1,5 @@
-import { type ActionArgs, type LoaderArgs, redirect } from "@remix-run/node";
-import { Link, useActionData } from "@remix-run/react";
+import { type ActionFunctionArgs, type LoaderFunctionArgs, redirect } from "react-router";
+import { Link, useActionData } from "react-router";
 import { z } from "zod";
 import { ErrorMessage, PrimaryButton, PrimaryInput } from "~/components/forms";
 import { commitSession, getSession } from "~/sessions";
@@ -9,7 +9,7 @@ import { badRequest } from "~/utils/http.server";
 import invariant from "tiny-invariant";
 import * as backend from "./backend";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   await requireLoggedOutUser(request);
   return null;
 }
@@ -19,7 +19,7 @@ const loginSchema = z.object({
   password: z.string(),
 });
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   await requireLoggedOutUser(request);
 
   const cookieHeader = request.headers.get("cookie");
