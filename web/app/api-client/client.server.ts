@@ -1,4 +1,4 @@
-import { json, redirect } from "@remix-run/node";
+import { data, redirect } from "@remix-run/node";
 import { type GraphQLError } from "graphql";
 import { request, ClientError, type Variables } from "graphql-request";
 import { type TypedDocumentNode } from "@graphql-typed-document-node/core";
@@ -27,7 +27,7 @@ const handleError = (error: GraphQLError, options?: ClientOptions) => {
       if (options?.onNotFound) {
         return options.onNotFound();
       }
-      throw json({ message: error.message }, { status: 404 });
+      throw data({ message: error.message }, { status: 404 });
     }
     default: {
       return;
@@ -58,6 +58,7 @@ export async function backendRequest<
     });
     return result;
   } catch (error) {
+    console.log("backend request error:", error);
     if (error instanceof ClientError) {
       error.response.errors?.forEach((error) => handleError(error, options));
       return error.response.data as Awaited<T>;

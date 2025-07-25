@@ -1,11 +1,15 @@
-import { type ActionArgs, type LoaderArgs, json } from "@remix-run/node";
+import {
+  type ActionFunctionArgs,
+  type LoaderFunctionArgs,
+  data,
+} from "@remix-run/node";
 import { Form, useActionData, useLoaderData } from "@remix-run/react";
 import { z } from "zod";
 import { PrimaryButton } from "~/components/forms";
 import { themeCookie } from "~/cookies";
 import { validateForm } from "~/utils/validation.server";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const cookieHeader = request.headers.get("cookie");
   const theme = await themeCookie.parse(cookieHeader);
 
@@ -16,20 +20,20 @@ const themeSchema = z.object({
   theme: z.string(),
 });
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   return validateForm(
     formData,
     themeSchema,
     async ({ theme }) =>
-      json(
+      data(
         { theme },
         {
           headers: { "Set-Cookie": await themeCookie.serialize(theme) },
         }
       ),
-    (errors) => json({ errors }, { status: 400 })
+    (errors) => data({ errors }, { status: 400 })
   );
 }
 

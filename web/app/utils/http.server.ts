@@ -1,5 +1,5 @@
-import { json } from "@remix-run/node";
+import { data as remixData } from "@remix-run/node";
 
 export function badRequest<T>(data: T) {
-  return json(data, { status: 400 });
+  return remixData(data, { status: 400 });
 }

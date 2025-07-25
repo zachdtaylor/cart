@@ -8,7 +8,6 @@ node_modules
 .env.prod
 postgres-data
 
-tailwind.css
 /test-results/
 /playwright-report/
 /playwright/.cache/

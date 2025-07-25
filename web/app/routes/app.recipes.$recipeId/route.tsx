@@ -1,7 +1,7 @@
 import {
-  type ActionArgs,
-  json,
-  type LoaderArgs,
+  type ActionFunctionArgs,
+  data,
+  type LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
 import {
@@ -38,12 +38,12 @@ import { validateForm } from "~/utils/validation.server";
 import * as backend from "./backend";
 import invariant from "tiny-invariant";
 
-export async function loader({ request, params }: LoaderArgs) {
+export async function loader({ request, params }: LoaderFunctionArgs) {
   const result = await backend.getRecipe(request, String(params.recipeId));
 
   invariant(result?.currentUser?.recipe);
 
-  return json(
+  return data(
     { recipe: result.currentUser.recipe },
     { headers: { "Cache-Control": "max-age=10" } }
   );
@@ -99,7 +99,7 @@ const createIngredientSchema = z.object({
   newIngredientName: z.string().min(1, "Name cannot be blank"),
 });
 
-export async function action({ request, params }: ActionArgs) {
+export async function action({ request, params }: ActionFunctionArgs) {
   const recipeId = String(params.recipeId);
   const formData = await request.formData();
   const _action = formData.get("_action");
@@ -125,7 +125,7 @@ export async function action({ request, params }: ActionArgs) {
             })),
           }),
 
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "createIngredient": {
@@ -138,7 +138,7 @@ export async function action({ request, params }: ActionArgs) {
             name: newIngredientName,
             amount: newIngredientAmount,
           }),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "deleteRecipe": {
@@ -150,7 +150,7 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         saveNameSchema,
         (data) => backend.saveName(request, recipeId, data.name),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "saveTotalTime": {
@@ -158,7 +158,7 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         saveTotalTimeSchema,
         (data) => backend.saveTotalTime(request, recipeId, data.totalTime),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "saveInstructions": {
@@ -167,7 +167,7 @@ export async function action({ request, params }: ActionArgs) {
         saveInstructionsSchema,
         (data) =>
           backend.saveInstructions(request, recipeId, data.instructions),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "saveIngredientAmount": {
@@ -175,7 +175,7 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         saveIngredientAmountSchema,
         ({ id, amount }) => backend.saveIngredientAmount(request, id, amount),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     case "saveIngredientName": {
@@ -183,7 +183,7 @@ export async function action({ request, params }: ActionArgs) {
         formData,
         saveIngredientNameSchema,
         ({ id, name }) => backend.saveIngredientName(request, id, name),
-        (errors) => json({ errors }, { status: 400 })
+        (errors) => data({ errors }, { status: 400 })
       );
     }
     default: {
@@ -299,14 +299,15 @@ export default function RecipeDetail() {
               defaultValue={data.recipe?.name}
               error={
                 !!(
-                  saveNameFetcher?.data?.errors?.name ||
-                  actionData?.errors?.name
+                  (saveNameFetcher?.data?.errors ?? {})?.name ||
+                  (actionData?.errors ?? {})?.name
                 )
               }
               onChange={(e) => saveName(e.target.value)}
             />
             <ErrorMessage>
-              {saveNameFetcher?.data?.errors?.name || actionData?.errors?.name}
+              {(saveNameFetcher?.data?.errors ?? {})?.name ||
+                (actionData?.errors ?? {})?.name}
             </ErrorMessage>
           </div>
         </div>
@@ -322,15 +323,15 @@ export default function RecipeDetail() {
               defaultValue={data.recipe?.totalTime ?? ""}
               error={
                 !!(
-                  saveTotalTimeFetcher?.data?.errors?.totalTime ||
-                  actionData?.errors?.totalTime
+                  (saveTotalTimeFetcher?.data?.errors ?? {})?.totalTime ||
+                  (actionData?.errors ?? {})?.totalTime
                 )
               }
               onChange={(e) => saveTotalTime(e.target.value)}
             />
             <ErrorMessage>
-              {saveTotalTimeFetcher?.data?.errors?.totalTime ||
-                actionData?.errors?.totalTime}
+              {(saveTotalTimeFetcher?.data?.errors ?? {})?.totalTime ||
+                (actionData?.errors ?? {})?.totalTime}
             </ErrorMessage>
           </div>
         </div>
@@ -345,7 +346,7 @@ export default function RecipeDetail() {
               amount={ingredient.amount}
               name={ingredient.name}
               amountError={actionData?.errors?.[`ingredientAmounts.${idx}`]}
-              nameError={actionData?.errors?.[`ingredientNames.${idx}`]}
+              nameError={(actionData?.errors ?? {})?.[`ingredientNames.${idx}`]}
               isOptimistic={ingredient.isOptimistic}
             />
           ))}
@@ -358,8 +359,9 @@ export default function RecipeDetail() {
               className="border-b-gray-200"
               error={
                 !!(
-                  createIngredientFetcher.data?.errors?.newIngredientAmount ??
-                  actionData?.errors?.newIngredientAmount
+                  (createIngredientFetcher.data?.errors ?? {})
+                    ?.newIngredientAmount ??
+                  (actionData?.errors ?? {})?.newIngredientAmount
                 )
               }
               value={createIngredientForm.amount}
@@ -377,8 +379,9 @@ export default function RecipeDetail() {
               }}
             />
             <ErrorMessage>
-              {createIngredientFetcher.data?.errors?.newIngredientAmount ??
-                actionData?.errors?.newIngredientAmount}
+              {(createIngredientFetcher.data?.errors ?? {})
+                ?.newIngredientAmount ??
+                (actionData?.errors ?? {})?.newIngredientAmount}
             </ErrorMessage>
           </div>
           <div>
@@ -389,8 +392,9 @@ export default function RecipeDetail() {
               className="border-b-gray-200"
               error={
                 !!(
-                  createIngredientFetcher.data?.errors?.newIngredientName ??
-                  actionData?.errors?.newIngredientName
+                  (createIngredientFetcher.data?.errors ?? {})
+                    ?.newIngredientName ??
+                  (actionData?.errors ?? {})?.newIngredientName
                 )
               }
               value={createIngredientForm.name}
@@ -408,8 +412,9 @@ export default function RecipeDetail() {
               }}
             />
             <ErrorMessage>
-              {createIngredientFetcher.data?.errors?.newIngredientName ??
-                actionData?.errors?.newIngredientName}
+              {(createIngredientFetcher.data?.errors ?? {})
+                ?.newIngredientName ??
+                (actionData?.errors ?? {})?.newIngredientName}
             </ErrorMessage>
           </div>
           <button

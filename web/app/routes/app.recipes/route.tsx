@@ -1,7 +1,7 @@
 import {
-  type ActionArgs,
-  json,
-  type LoaderArgs,
+  type ActionFunctionArgs,
+  data,
+  type LoaderFunctionArgs,
   redirect,
 } from "@remix-run/node";
 import {
@@ -27,7 +27,7 @@ import { classNames, useBuildSearchParams } from "~/utils/misc";
 import * as backend from "./backend";
 import invariant from "tiny-invariant";
 
-export async function loader({ request }: LoaderArgs) {
+export async function loader({ request }: LoaderFunctionArgs) {
   const url = new URL(request.url);
   const query = url.searchParams.get("q");
   const filter = url.searchParams.get("filter");
@@ -40,10 +40,10 @@ export async function loader({ request }: LoaderArgs) {
 
   invariant(result?.currentUser?.recipes);
 
-  return json({ recipes: result.currentUser.recipes });
+  return data({ recipes: result.currentUser.recipes });
 }
 
-export async function action({ request }: ActionArgs) {
+export async function action({ request }: ActionFunctionArgs) {
   const formData = await request.formData();
 
   switch (formData.get("_action")) {
