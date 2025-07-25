@@ -1,4 +1,4 @@
-import { data, redirect } from "@remix-run/node";
+import { data, redirect } from "react-router";
 import { type GraphQLError } from "graphql";
 import { request, ClientError, type Variables } from "graphql-request";
 import { type TypedDocumentNode } from "@graphql-typed-document-node/core";

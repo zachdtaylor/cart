@@ -13,3 +13,4 @@ postgres-data
 /playwright/.cache/
 
 .production-secrets
+.react-router/
