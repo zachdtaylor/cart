@@ -26,7 +26,6 @@ defmodule CartWeb.Context do
 
   defp authorize(token) do
     token
-    |> IO.inspect(label: "token")
     |> Base.url_decode64!()
     |> Accounts.get_user_by_session_token()
     |> case do
